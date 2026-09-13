@@ -242,43 +242,59 @@ export default function Menu() {
   // word never appears in the individual dish's own text — quality over
   // cleverness, no fuzzy scoring, just an instant, reliable substring match
   // that stays fast at this catalog size.
+  // Results are ranked, not just filtered: a dish whose NAME matches every
+  // query word comes first, then a dish that only matches once its
+  // description (ingredients) is taken into account, then one that only
+  // matches via its category name — so typing "somon" surfaces the salmon
+  // dishes by name before a dish that merely lists salmon as an ingredient.
   const searchResults = useMemo(() => {
     const qWords = fold(searchQuery).trim().split(/\s+/).filter(Boolean)
     if (!qWords.length) return []
-    return items.filter(it => {
-      const cat = catById[it.category_id]
-      const hay = fold([
-        it.name, it.description,
-        it.translations?.ru?.name, it.translations?.ru?.description,
-        it.translations?.en?.name, it.translations?.en?.description,
-        cat?.name, cat?.translations?.ru?.name, cat?.translations?.en?.name
-      ].filter(Boolean).join(' '))
-      // Every query word must show up somewhere in the dish's text — order
-      // and extra words don't matter, so "pui salata" and "salata cu pui"
-      // both find the same dishes. A Cyrillic word of 4+ letters also
-      // matches any Cyrillic word in the dish that shares its stem (курица
-      // ~ куриный/куриное/курицей, рыба ~ рыбу/рыбой) so Russian's heavy
-      // noun/adjective inflection doesn't hide an otherwise obvious match —
-      // this was the biggest real gap: "курица" found only 1 of 5 chicken
-      // dishes because the rest only ever say куриный/куриное, and a short
-      // word like "рыба" missed every dish entirely once declined.
-      // Scoped to Cyrillic on purpose: the same trick on Latin text turns
-      // up unrelated words that happen to share a short prefix (searching
-      // "salate" would otherwise also surface "salam"/"salată-as-a-garnish"
-      // dishes, or even the English word "salad" in a translation).
+    const cyr = /[Ѐ-ӿ]/
+    function stemEq(a, b) {
+      const len = Math.max(3, Math.min(a.length, b.length) - 2)
+      if (a.length < len || b.length < len) return false
+      return a.slice(0, len) === b.slice(0, len)
+    }
+    // Every query word must show up somewhere in the given text — order and
+    // extra words don't matter, so "pui salata" and "salata cu pui" both
+    // match. A Cyrillic word of 4+ letters also matches any Cyrillic word
+    // that shares its stem (курица ~ куриный/куриное/курицей, рыба ~
+    // рыбу/рыбой) so Russian's heavy noun/adjective inflection doesn't hide
+    // an otherwise obvious match — this was the biggest real gap: "курица"
+    // found only 1 of 5 chicken dishes because the rest only ever say
+    // куриный/куриное, and a short word like "рыба" missed every dish
+    // entirely once declined. Scoped to Cyrillic on purpose: the same trick
+    // on Latin text turns up unrelated words that happen to share a short
+    // prefix (searching "salate" would otherwise also surface "salam").
+    function allWordsMatch(hay) {
       const hayWords = hay.split(/\s+/).filter(Boolean)
-      const cyr = /[Ѐ-ӿ]/
-      function stemEq(a, b) {
-        const len = Math.max(3, Math.min(a.length, b.length) - 2)
-        if (a.length < len || b.length < len) return false
-        return a.slice(0, len) === b.slice(0, len)
-      }
       return qWords.every(w => {
         if (hay.includes(w)) return true
         if (w.length < 4 || !cyr.test(w)) return false
         return hayWords.some(hw => hw.length >= 4 && cyr.test(hw) && stemEq(w, hw))
       })
-    }).slice(0, 30)
+    }
+    const makeHay = parts => fold(parts.filter(Boolean).join(' '))
+    const ranked = []
+    items.forEach(it => {
+      const cat = catById[it.category_id]
+      const nameHay = makeHay([it.name, it.translations?.ru?.name, it.translations?.en?.name])
+      const nameDescHay = makeHay([
+        it.name, it.description,
+        it.translations?.ru?.name, it.translations?.ru?.description,
+        it.translations?.en?.name, it.translations?.en?.description
+      ])
+      const fullHay = makeHay([nameDescHay, cat?.name, cat?.translations?.ru?.name, cat?.translations?.en?.name])
+      let rank
+      if (allWordsMatch(nameHay)) rank = 0
+      else if (allWordsMatch(nameDescHay)) rank = 1
+      else if (allWordsMatch(fullHay)) rank = 2
+      else return
+      ranked.push({ it, rank })
+    })
+    ranked.sort((a, b) => a.rank - b.rank)
+    return ranked.slice(0, 30).map(r => r.it)
   }, [items, catById, searchQuery])
 
   function goToItem(it) {

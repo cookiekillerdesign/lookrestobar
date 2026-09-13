@@ -82,6 +82,13 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
    the space it reserves in the document flow. */
 .lm-topbar-hidden { transform: translateY(-100%); }
 .lm-topbar-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); gap: 12px; }
+/* Desktop only: the header's own content can run wider than the shared
+   1200px `.lm-wrap` cap, so on a big screen it was leaving ~200px+ of empty
+   margin either side instead of the 60px the header actually wants. Scoped
+   to `.lm-topbar .lm-wrap` (not the base `.lm-wrap` rule) so the hero, the
+   dish grid and the footer keep their original, narrower reading width —
+   and scoped to this breakpoint only, so phones/tablets are untouched. */
+@media (min-width: 1024px) { .lm-topbar .lm-wrap { max-width: none; padding: 0 60px; } }
 .lm-topbar-actions { position: relative; display: flex; align-items: center; gap: 10px; }
 .lm-langswitch { display: flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
 .lm-lang-btn { border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 6px 10px; border-radius: 999px; cursor: pointer; transition: background .2s var(--ease), color .2s; }
@@ -114,10 +121,18 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
    little divider sweep-in underneath it — rather than everything popping in
    at once. Runs once; there's nothing to re-trigger since the hero never
    remounts. */
-.lm-hero-mark, .lm-hero h1, .lm-hero .lm-divider { animation: lmHeroIn .8s var(--ease) both; }
-.lm-hero h1 { animation-delay: .1s; }
+.lm-hero-mark, .lm-hero .lm-divider { animation: lmHeroIn .8s var(--ease) both; }
 .lm-hero .lm-divider { animation-delay: .22s; }
 @keyframes lmHeroIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+/* The heading gets its own fade-only entrance (no transform/translateY).
+   Animating `transform` promotes the element to its own compositing layer,
+   and on some browser engines that layer's paint bounds are sized off the
+   text's plain line box — clipping any glyph ink (Great Vibes' deep p/g/y
+   descenders) that pokes out past it, regardless of how much line-height or
+   padding the element itself declares. A fade avoids that class of bug
+   entirely while still landing the same cascading reveal. */
+.lm-hero h1 { animation: lmHeroFadeIn .8s var(--ease) both .1s; overflow: visible; }
+@keyframes lmHeroFadeIn { from { opacity: 0; } to { opacity: 1; } }
 .lm-hero-mark { width: 100px; height: auto; margin: 0 auto 16px; opacity: .95; }
 .lm-hero h1 {
   font-family: 'Great Vibes', cursive; font-weight: 400; font-size: clamp(36px, 9vw, 66px);
@@ -137,7 +152,7 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
      poking out gets no color at all and reads as "cut off". inline-block
      plus a little bottom padding gives the gradient box real room to
      spare, whatever the descender depth turns out to be. */
-  display: inline-block; padding-bottom: 0.12em;
+  display: inline-block; padding-bottom: 0.22em; overflow: visible;
 }
 .lm-hero p { max-width: 480px; margin: 0 auto; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
 .lm-divider { width: 100px; height: 1px; margin: 22px auto 0; position: relative; overflow: hidden; background: var(--line); }
@@ -248,7 +263,11 @@ main.lm-wrap { display: block; padding-bottom: 130px; }
 .lm-card-body { padding: 16px 16px 14px; flex: 1; display: flex; flex-direction: column; }
 .lm-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
 .lm-card h3 { font-family: 'TikTok Sans Variable', 'Inter', sans-serif; font-weight: 650; font-size: 16.5px; margin: 0 0 6px; line-height: 1.3; letter-spacing: -.005em; }
-.lm-desc { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; text-align: justify; text-justify: inter-word; }
+/* Left-aligned, not justified: justify stretches inter-word spacing to fill
+   the line, and on a narrow card with a short ingredient list that means
+   only 2-4 words per line — the browser has to blow those few gaps up huge
+   to reach the right edge, which reads as broken rather than tidy. */
+.lm-desc { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; }
 .lm-card-meta { display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 14px; flex-wrap: wrap; }
 /* Grammage chip, back in the meta row next to the price (not overlaid on
    the photo) — matches how the venue's own printed menu presents it. */
