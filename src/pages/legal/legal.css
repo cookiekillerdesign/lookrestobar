@@ -1,6 +1,11 @@
 /* Legal pages (Terms / Privacy / GDPR / Cookies) reuse Menu.css's .lm-root
    tokens, fonts and footer — this file only adds the reading layout. */
-.lm-legal-main { padding: 36px 0 60px; max-width: 720px; }
+/* Vertical padding only — .lm-wrap (Menu.css) already supplies the side
+   gutters (16px / 28px on wider phones / 60px on desktop headers) and both
+   classes sit on the same <main>. A shorthand `padding: 36px 0 60px` here
+   used to zero out those side values outright since this file loads after
+   Menu.css, which is why the text used to run edge-to-edge on phones. */
+.lm-legal-main { padding-top: 36px; padding-bottom: 60px; max-width: 720px; }
 .lm-legal-back {
   display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700;
   color: var(--muted); text-decoration: none; margin-bottom: 22px; transition: color .18s;
