@@ -1,0 +1,44 @@
+name: Supabase keep-alive
+
+# Supabase's free tier auto-pauses a project after 7 days with zero API
+# requests. In normal operation that never happens — every guest scanning
+# the QR code on a table is itself a request — but if the restaurant closes
+# for a week (off-season, renovation, holidays), the project would pause and
+# the menu would go blank until someone opens the Supabase dashboard and
+# clicks "Restore". This workflow pings the database once a day instead, so
+# the 7-day counter never gets anywhere close to zero, whether or not anyone
+# actually opens the site that day.
+#
+# One-time setup (see docs/ADMIN.md, section "Чтобы база не «засыпала»"):
+#   Repo → Settings → Secrets and variables → Actions → New repository secret
+#     SUPABASE_URL       = same value as VITE_SUPABASE_URL in Vercel
+#     SUPABASE_ANON_KEY  = same value as VITE_SUPABASE_ANON_KEY in Vercel
+#
+# The anon key is the same public, read-only-by-RLS key the live site
+# already uses in the browser — nothing more sensitive is needed here, and
+# nothing is written to the database.
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # every day at 06:00 UTC
+  workflow_dispatch: # lets you trigger a run by hand from the Actions tab, to test it
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "::error::SUPABASE_URL / SUPABASE_ANON_KEY repo secrets are not set — see docs/ADMIN.md."
+            exit 1
+          fi
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/menu_categories?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Supabase responded with HTTP $code"
+          if [ "$code" -ge 400 ]; then
+            echo "::error::Unexpected status from Supabase ($code) — check the secrets are correct and the project isn't already paused."
+            exit 1
+          fi

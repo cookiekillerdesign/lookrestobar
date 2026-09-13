@@ -6,6 +6,7 @@ import { useToast } from '../components/Toasts'
 import Confirm from '../components/Confirm'
 import { move } from '../reorder'
 import { useAdminLang } from '../i18n.jsx'
+import { activeBadge } from '../../pages/menuHelpers.jsx'
 
 export default function ItemsPage() {
   const { t } = useAdminLang()
@@ -150,7 +151,7 @@ export default function ItemsPage() {
                         ? <img src={it.photo_url} alt="" loading="lazy" />
                         : <span className="adm-dish-photo-fallback">{cat.emoji || '🍽️'}</span>}
                       {it.weight && <span className="adm-dish-weight">{it.weight}</span>}
-                      {it.signature && <span className="adm-dish-star" title={t.editor?.signature}><Star size={12} weight="fill" /></span>}
+                      {activeBadge(it) === 'recommended' && <span className="adm-dish-star" title={t.editor?.badgeRecommended}><Star size={12} weight="fill" /></span>}
                       {!it.published && <span className="adm-dish-hidden-veil">{t.common.hiddenBadge}</span>}
                     </Link>
                     <div className="adm-dish-body">

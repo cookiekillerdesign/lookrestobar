@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Trash, Check, Star, Sparkle, Percent, Prohibit, CircleDashed } from '@phosphor-icons/react'
 import { getItem, updateItem, deleteItem, listCategories, removeStorageObjects } from '../api'
+import { activeBadge } from '../../pages/menuHelpers.jsx'
 import MediaDrop from '../components/MediaDrop'
 import { useToast } from '../components/Toasts'
 import Confirm from '../components/Confirm'
@@ -69,7 +70,13 @@ export default function ItemEditor() {
 
   function setBadge(code) {
     const badge = code === 'none' ? null : code
-    const patch = { badge }
+    // `signature` was a separate, older "mark as recommended" checkbox that
+    // did the exact same thing as picking Recomandat here — kept only so
+    // rows saved before this picker existed still show their gold badge
+    // (see activeBadge() in menuHelpers.jsx). Any pick made here — including
+    // "Fără etichetă" — should be the one source of truth going forward, so
+    // clear the old flag rather than leaving it to silently override "none".
+    const patch = { badge, signature: false }
     if (badge !== 'discount') patch.discount_percent = null
     if (!badge) patch.badge_expires_at = null
     save(patch)
@@ -197,11 +204,6 @@ export default function ItemEditor() {
         </div>
 
         <label className="adm-check">
-          <input type="checkbox" checked={Boolean(item.signature)} onChange={e => save({ signature: e.target.checked })} />
-          {t.editor.signature}
-        </label>
-
-        <label className="adm-check">
           <input type="checkbox" checked={Boolean(item.published)} onChange={e => save({ published: e.target.checked })} />
           {t.editor.published}
         </label>
@@ -218,7 +220,7 @@ export default function ItemEditor() {
               <button
                 key={code}
                 type="button"
-                className={`adm-badge-chip adm-badge-chip--${code}${(item.badge || 'none') === code ? ' active' : ''}`}
+                className={`adm-badge-chip adm-badge-chip--${code}${(activeBadge(item) || 'none') === code ? ' active' : ''}`}
                 onClick={() => setBadge(code)}
               >
                 <BadgeIcon size={13} weight={code === 'none' ? 'regular' : 'fill'} />
