@@ -114,18 +114,10 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
    little divider sweep-in underneath it — rather than everything popping in
    at once. Runs once; there's nothing to re-trigger since the hero never
    remounts. */
-.lm-hero-mark, .lm-hero .lm-divider { animation: lmHeroIn .8s var(--ease) both; }
+.lm-hero-mark, .lm-hero h1, .lm-hero .lm-divider { animation: lmHeroIn .8s var(--ease) both; }
+.lm-hero h1 { animation-delay: .1s; }
 .lm-hero .lm-divider { animation-delay: .22s; }
 @keyframes lmHeroIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-/* The heading gets its own fade-only entrance (no transform/translateY).
-   Animating `transform` promotes the element to its own compositing layer,
-   and on some browser engines that layer's paint bounds are sized off the
-   text's plain line box — clipping any glyph ink (Great Vibes' deep p/g/y
-   descenders) that pokes out past it, regardless of how much line-height or
-   padding the element itself declares. A fade avoids that class of bug
-   entirely while still landing the same cascading reveal. */
-.lm-hero h1 { animation: lmHeroFadeIn .8s var(--ease) both .1s; overflow: visible; }
-@keyframes lmHeroFadeIn { from { opacity: 0; } to { opacity: 1; } }
 .lm-hero-mark { width: 100px; height: auto; margin: 0 auto 16px; opacity: .95; }
 .lm-hero h1 {
   font-family: 'Great Vibes', cursive; font-weight: 400; font-size: clamp(36px, 9vw, 66px);
@@ -145,7 +137,7 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
      poking out gets no color at all and reads as "cut off". inline-block
      plus a little bottom padding gives the gradient box real room to
      spare, whatever the descender depth turns out to be. */
-  display: inline-block; padding-bottom: 0.22em; overflow: visible;
+  display: inline-block; padding-bottom: 0.12em;
 }
 .lm-hero p { max-width: 480px; margin: 0 auto; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
 .lm-divider { width: 100px; height: 1px; margin: 22px auto 0; position: relative; overflow: hidden; background: var(--line); }
