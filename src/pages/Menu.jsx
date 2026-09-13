@@ -429,7 +429,7 @@ export default function Menu() {
 
         {activeMenu.live && categories.map((c, ci) => (
           <section className="lm-section" id={`sec-${c.id}`} key={c.id}>
-            <div className="lm-section-head lm-reveal">
+            <div className="lm-section-head">
               <span className="lm-section-ic" data-hue={ci % 6}>{c.emoji || DEFAULT_CAT_EMOJI}</span>
               <div className="lm-section-headtxt">
                 <h2>{loc(c, lang, 'name')}</h2>
