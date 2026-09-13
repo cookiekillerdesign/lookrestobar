@@ -250,30 +250,34 @@ main.lm-wrap { display: block; padding-bottom: 130px; }
   display: flex; flex-direction: column;
 }
 .lm-card:hover { border-color: var(--line); background: var(--card-hover); box-shadow: var(--shadow-1); }
-/* Cards fade + rise + soften into place the first time they cross into view
+/* Cards fade + rise + scale into place the first time they cross into view
    (see the IntersectionObserver in Menu.jsx) — restates .lm-card's own
-   transitions alongside opacity/transform/filter rather than just adding a
-   rule, since the `transition` shorthand replaces the whole property list,
-   not merges it. The slight blur-to-focus plus a small scale-up (rather than
-   a plain fade) is what reads as "designed" instead of a basic fade-in — a
-   very common pattern on higher-end sites right now. Listed 6 transition
-   values in the SAME order as the properties below (not the shorthand
-   default) purely so the per-column stagger further down can delay just the
-   reveal properties without also delaying the hover transitions this class
-   shares the rule with. */
+   transitions alongside opacity/transform rather than just adding a rule,
+   since the `transition` shorthand replaces the whole property list, not
+   merges it. Deliberately NOT using `filter: blur()` here even though it
+   reads nicely on desktop Chromium: combined with this card's own
+   `border-radius` + `overflow: hidden`, an animated blur is a known mobile
+   WebKit/Safari rendering trap — the blur can bleed past the rounded
+   corners as a fuzzy rectangular halo instead of staying clipped to the
+   card's shape, which is exactly the "ugly card" the user flagged on
+   phones. Scale + rise alone gives the same "designed" feel without that
+   risk. Listed 5 transition values in the SAME order as the properties
+   below (not the shorthand default) purely so the per-column stagger
+   further down can delay just the reveal properties without also delaying
+   the hover transitions this class shares the rule with. */
 .lm-reveal {
-  opacity: 0; transform: translateY(22px) scale(.97); filter: blur(6px);
-  transition: opacity .7s var(--ease), transform .7s var(--ease), filter .7s var(--ease), border-color .3s, background .3s, box-shadow .3s;
+  opacity: 0; transform: translateY(22px) scale(.97);
+  transition: opacity .7s var(--ease), transform .7s var(--ease), border-color .3s, background .3s, box-shadow .3s;
 }
-.lm-reveal--in { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+.lm-reveal--in { opacity: 1; transform: translateY(0) scale(1); }
 /* A row that scrolls into view together shouldn't reveal as one flat block —
    staggering by column position (repeating every 4, the widest layout's
    column count) turns it into a left-to-right cascade instead. Delays are
    listed positionally against the 6 transition-properties above so only the
    reveal itself is delayed, never the instant hover feedback. */
-.lm-grid > .lm-reveal:nth-child(4n+2) { transition-delay: .08s, .08s, .08s, 0s, 0s, 0s; }
-.lm-grid > .lm-reveal:nth-child(4n+3) { transition-delay: .16s, .16s, .16s, 0s, 0s, 0s; }
-.lm-grid > .lm-reveal:nth-child(4n+4) { transition-delay: .24s, .24s, .24s, 0s, 0s, 0s; }
+.lm-grid > .lm-reveal:nth-child(4n+2) { transition-delay: .08s, .08s, 0s, 0s, 0s; }
+.lm-grid > .lm-reveal:nth-child(4n+3) { transition-delay: .16s, .16s, 0s, 0s, 0s; }
+.lm-grid > .lm-reveal:nth-child(4n+4) { transition-delay: .24s, .24s, 0s, 0s, 0s; }
 .lm-thumb { width: 100%; aspect-ratio: 4 / 3; background: var(--bg-2); overflow: hidden; position: relative; }
 .lm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s var(--ease); }
 /* Tap-to-enlarge affordance — a subtle zoom-in cursor on desktop and a very
