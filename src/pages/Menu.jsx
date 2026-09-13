@@ -366,6 +366,49 @@ export default function Menu() {
     catch { showToast(t.copyFailedToast) }
   }
 
+  // The category/dish grid is the heaviest thing this component renders (every
+  // dish card, badge and button on the whole menu). None of that JSX depends
+  // on searchOpen/navDrawerOpen/drawerOpen/activeCategoryId — but without this
+  // memo, React was recreating and reconciling the *entire* grid on every one
+  // of those toggles, which is exactly what made the mobile search/menu
+  // buttons feel like they paused for a beat before the panel actually slid
+  // in (worse on slower phones, worse the more dishes a category has). Only
+  // recompute it when something it actually shows changes.
+  const menuSections = useMemo(() => {
+    if (!activeMenu.live) return null
+    return categories.map((c, ci) => (
+      <section className="lm-section" id={`sec-${c.id}`} key={c.id}>
+        <div className="lm-section-head lm-reveal">
+          <span className="lm-section-ic" data-hue={ci % 6}>{c.emoji || DEFAULT_CAT_EMOJI}</span>
+          <div className="lm-section-headtxt">
+            <h2>{loc(c, lang, 'name')}</h2>
+          </div>
+          <div className="lm-rule" />
+          <span className="lm-count-chip">{(itemsByCategory[c.id] || []).length}</span>
+        </div>
+        <div className="lm-grid">
+          {(itemsByCategory[c.id] || []).map(it => {
+            const qty = selection[it.id] || 0
+            const pulse = pulseRef.current[it.id]
+            if (pulse) setTimeout(() => { pulseRef.current[it.id] = false }, 500)
+            return (
+              <DishCard
+                key={it.id}
+                id={`item-${it.id}`}
+                it={it} cat={c} lang={lang} t={t}
+                qty={qty} pulse={pulse} flashed={flashId === it.id} reveal
+                onToggleFav={() => toggleFav(it)}
+                onQty={(q) => setQty(it.id, q)}
+                onOpenPhoto={setLightboxItem}
+              />
+            )
+          })}
+        </div>
+      </section>
+    ))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMenu.live, categories, itemsByCategory, selection, lang, t, flashId])
+
   return (
     <div className="lm-root">
       <div className="lm-ambient"><span /><span /></div>
@@ -427,36 +470,7 @@ export default function Menu() {
           </div>
         )}
 
-        {activeMenu.live && categories.map((c, ci) => (
-          <section className="lm-section" id={`sec-${c.id}`} key={c.id}>
-            <div className="lm-section-head lm-reveal">
-              <span className="lm-section-ic" data-hue={ci % 6}>{c.emoji || DEFAULT_CAT_EMOJI}</span>
-              <div className="lm-section-headtxt">
-                <h2>{loc(c, lang, 'name')}</h2>
-              </div>
-              <div className="lm-rule" />
-              <span className="lm-count-chip">{(itemsByCategory[c.id] || []).length}</span>
-            </div>
-            <div className="lm-grid">
-              {(itemsByCategory[c.id] || []).map(it => {
-                const qty = selection[it.id] || 0
-                const pulse = pulseRef.current[it.id]
-                if (pulse) setTimeout(() => { pulseRef.current[it.id] = false }, 500)
-                return (
-                  <DishCard
-                    key={it.id}
-                    id={`item-${it.id}`}
-                    it={it} cat={c} lang={lang} t={t}
-                    qty={qty} pulse={pulse} flashed={flashId === it.id} reveal
-                    onToggleFav={() => toggleFav(it)}
-                    onQty={(q) => setQty(it.id, q)}
-                    onOpenPhoto={setLightboxItem}
-                  />
-                )
-              })}
-            </div>
-          </section>
-        ))}
+        {menuSections}
       </main>
 
       <SiteFooter lang={lang} />

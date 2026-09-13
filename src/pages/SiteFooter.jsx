@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Phone, InstagramLogo, FacebookLogo, TiktokLogo } from '@phosphor-icons/react'
-import LogoMark from './LogoMark.jsx'
+import logoHorizontal from '../assets/logo-horizontal.svg'
+import logoVertical from '../assets/logo-vertical.svg'
 import { CONTACT } from '../data/contact'
 import { getDict } from '../i18n/site'
 
@@ -17,8 +18,11 @@ export default function SiteFooter({ lang }) {
       <div className="lm-wrap lm-footer-inner">
         <div className="lm-footer-top">
           <div className="lm-footer-col lm-footer-brand">
-            <LogoMark className="lm-footer-mark" />
-            <b>LOOK Restobar &amp; Terrace</b>
+            {/* Vertical wordmark on narrow screens, horizontal on wide ones —
+                swapped by CSS (display: none) rather than JS so there's no
+                layout flash and no duplicate markup to keep in sync. */}
+            <img src={logoVertical} alt="LOOK Restobar & Terrace" className="lm-footer-logo lm-footer-logo-v" />
+            <img src={logoHorizontal} alt="LOOK Restobar & Terrace" className="lm-footer-logo lm-footer-logo-h" />
             <p className="lm-footer-note">{t.footerNote}</p>
           </div>
 

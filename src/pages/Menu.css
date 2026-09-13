@@ -51,6 +51,14 @@ html[data-theme="light"] .lm-root {
 .lm-root, .lm-root *, .lm-root *::before, .lm-root *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 .lm-root ::selection { background: var(--gold); color: var(--gold-ink); }
 .lm-root button { font-family: inherit; }
+/* Every tappable control gets touch-action: manipulation — it tells the
+   browser up front "this is a single tap, not a possible double-tap-to-zoom",
+   which removes the ~300ms wait-and-see delay some mobile browsers (this is
+   most noticeable in in-app browsers like Instagram/TikTok, which QR-code
+   menu visitors frequently use) still insert before firing click. Without
+   it, the search/menu buttons and every other button can feel like they
+   pause for a beat before reacting. */
+.lm-root button, .lm-root a, .lm-root [role="button"] { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .lm-root *, .lm-root *::before, .lm-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
@@ -371,8 +379,19 @@ html[data-theme="light"] .lm-price-discounted { color: #b8402f; }
 .lm-footer-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 @media (min-width: 760px) { .lm-footer-col { align-items: flex-start; } }
 .lm-footer-brand { max-width: 300px; }
-.lm-footer-mark { width: 46px; height: auto; opacity: .9; }
-.lm-footer b { color: var(--ink-dim); font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; }
+/* Vertical wordmark stacked for the narrow, centered mobile column; the wide
+   horizontal one once the footer switches to its row layout (same 760px
+   breakpoint as .lm-footer-top/.lm-footer-col above) — only one is ever in
+   the layout at a time, the other is display:none. */
+.lm-footer-logo { height: 54px; width: auto; opacity: .95; }
+.lm-footer-logo-h { display: none; }
+@media (min-width: 760px) {
+  .lm-footer-logo-v { display: none; }
+  /* Extra breathing room under the wide logo on desktop only — the mobile
+     stack (vertical logo, centered) keeps the tighter default gap from
+     .lm-footer-col above. */
+  .lm-footer-logo-h { display: block; height: 40px; margin-bottom: 18px; }
+}
 .lm-footer-note { margin: 0; line-height: 1.6; opacity: .8; font-size: 12px; }
 .lm-footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
