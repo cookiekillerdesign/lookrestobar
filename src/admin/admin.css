@@ -159,6 +159,7 @@ body:has(.adm) { background: #0F0F13; }
   box-shadow: 0 20px 44px -32px rgba(0, 0, 0, .7);
 }
 .adm-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.adm-panel--warning { border-color: var(--a-warn); background: rgba(255, 176, 32, .06); }
 
 .adm-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 .adm-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }

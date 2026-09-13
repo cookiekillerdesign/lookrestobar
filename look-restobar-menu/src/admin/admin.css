@@ -1,0 +1,574 @@
+/* ============================================================================
+   Admin panel — the back of house.
+
+   Ink-dark, warm-gold accent — the same palette as the public menu, just
+   inverted (paper-white text on ink, instead of ink on paper), so switching
+   between "/" and "/admin" in a new tab never feels like two different
+   products. Soft rounded corners + real depth (shadows, not just borders)
+   replace the earlier flat/square dev-tool look; IBM Plex Mono stays for
+   labels and data, Nunito Sans 900 uppercase for headings.
+   ============================================================================ */
+
+.adm {
+  --a-ink: #0F0F13;
+  --a-surface: #17171D;
+  --a-raised: #1E1E26;
+  --a-line: rgba(241, 240, 236, .14);
+  --a-line-soft: rgba(241, 240, 236, .07);
+  --a-paper: #F1F0EC;
+  --a-dim: rgba(241, 240, 236, .58);
+  --a-faint: rgba(241, 240, 236, .34);
+  --a-cobalt: #C8A45C; /* Look gold accent */
+  --a-cobalt-ink: #241a08;
+  --a-live: #3FC97A;
+  --a-warn: #FFB020;
+  --a-danger: #FF3B30;
+  --a-r-sm: 9px;
+  --a-r-md: 13px;
+  --a-r-lg: 18px;
+
+  /* No mono/body webfont is actually loaded by the project (see main.jsx) —
+     these two were referenced everywhere below but never defined, so every
+     label in the panel was silently falling back to the browser's default
+     serif. Defining them here to the fonts we DO ship (Inter) plus a real
+     system-monospace stack for the label/data font fixes that everywhere
+     at once. */
+  --body: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+  /* --display was in the same boat — undefined everywhere it was used for
+     headings/dish-names/stat numbers. TikTok Sans Variable is already
+     loaded for the public menu's dish names, so reusing it here for the
+     admin's bold headings ties the two together instead of pulling in a
+     fourth typeface. */
+  --display: 'TikTok Sans Variable', 'Inter', system-ui, sans-serif;
+
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  background: var(--a-ink);
+  color: var(--a-paper);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+/* Every link in the panel is one of our own styled components (buttons,
+   nav pills, dish-name links) — never a plain inline text link — so the
+   browser's default underline/visited-color always fought the design
+   instead of helping it. Reset once, here, instead of chasing it class by
+   class every time a new <Link>/<a> gets styled as something else. */
+.adm a { text-decoration: none; color: inherit; }
+
+/* The public site paints the <body> paper-white; without this the elastic
+   overscroll area at the top and bottom of the panel flashes white. */
+body:has(.adm) { background: #0F0F13; }
+
+.adm *,
+.adm *::before,
+.adm *::after { box-sizing: border-box; }
+
+.adm ::selection { background: var(--a-cobalt); color: var(--a-cobalt-ink); }
+.adm :focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------------------------------------------------------------- shell -- */
+.adm-shell {
+  display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100svh;
+  background: linear-gradient(90deg, var(--a-surface) 0 240px, transparent 240px);
+}
+
+.adm-side {
+  border-right: 1px solid var(--a-line);
+  padding: 22px 0 22px;
+  display: flex; flex-direction: column; gap: 4px;
+  position: sticky; top: 0; height: 100svh; align-self: start; overflow-y: auto;
+  background: var(--a-surface);
+}
+
+.adm-brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 2px 20px 20px; margin-bottom: 14px;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.adm-brand-mark {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 38px; height: 38px; border-radius: 11px;
+  background: linear-gradient(155deg, rgba(200,164,92,.22), rgba(200,164,92,.06));
+  border: 1px solid rgba(200,164,92,.3);
+}
+.adm-brand-mark .adm-mark-icon { width: 19px; }
+.adm-brand-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.adm-brand-text b { font-family: var(--body); font-weight: 800; font-size: 14px; letter-spacing: -.01em; color: var(--a-paper); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-brand-text i { font-style: normal; font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--a-faint); }
+
+.adm-nav { display: flex; flex-direction: column; gap: 3px; padding: 4px 0 10px; }
+
+.adm-navlink {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 12px; padding: 9px 14px 9px 9px; border-radius: 999px;
+  font-family: var(--body); font-weight: 600; font-size: 13.5px; letter-spacing: 0; text-transform: none;
+  color: var(--a-dim);
+  text-decoration: none;
+  transition: color .18s, background .18s, transform .15s;
+}
+.adm-navlink:hover, .adm-navlink:visited, .adm-navlink:focus, .adm-navlink.active { text-decoration: none; }
+.adm-navlink-ic {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 27px; height: 27px; border-radius: 999px;
+  background: rgba(241, 240, 236, .045); color: inherit;
+  transition: background .18s, color .18s;
+}
+.adm-navlink:hover { color: var(--a-paper); background: rgba(241, 240, 236, .055); transform: translateX(1px); }
+.adm-navlink:hover .adm-navlink-ic { background: rgba(241, 240, 236, .1); }
+.adm-navlink.active { color: var(--a-cobalt-ink); background: var(--a-cobalt); font-weight: 800; box-shadow: 0 8px 18px -10px rgba(200,164,92,.7); }
+.adm-navlink.active .adm-navlink-ic { background: rgba(36,26,8,.16); color: var(--a-cobalt-ink); }
+.adm-navlink svg { flex-shrink: 0; }
+
+.adm-side-foot { margin-top: auto; padding: 18px 20px 0; border-top: 1px solid var(--a-line-soft); }
+.adm-side-user { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; color: var(--a-faint); word-break: break-all; margin-bottom: 12px; }
+
+.adm-main { padding: 34px clamp(20px, 3.4vw, 46px) 90px; min-width: 0; }
+
+/* ---------------------------------------------------------------- type --- */
+.adm-eyebrow {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--a-faint); display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.adm-eyebrow::before { content: ""; width: 26px; height: 1px; background: currentColor; flex-shrink: 0; }
+
+.adm h1 {
+  font-family: var(--display); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(28px, 3.4vw, 44px); line-height: .98; letter-spacing: -.02em; margin: 0 0 10px;
+}
+.adm h2 { font-family: var(--display); font-weight: 800; font-size: 19px; letter-spacing: -.01em; margin: 0; display: flex; align-items: center; }
+.adm h3 { font-family: var(--display); font-weight: 800; font-size: 15px; margin: 0; }
+.adm p { margin: 0; }
+.adm a { color: inherit; }
+.adm code {
+  font-family: var(--mono); font-size: 12.5px;
+  background: rgba(241, 240, 236, .08); padding: 2px 6px; border-radius: 4px; word-break: break-all;
+}
+
+.adm-lede { color: var(--a-dim); max-width: 62ch; margin-bottom: 30px; }
+.adm-hint { font-size: 12.5px; color: var(--a-faint); line-height: 1.5; }
+
+.adm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+
+/* --------------------------------------------------------------- panels -- */
+.adm-panel {
+  background: var(--a-surface); border: 1px solid var(--a-line); border-radius: var(--a-r-lg);
+  padding: 22px; margin-bottom: 20px;
+  box-shadow: 0 20px 44px -32px rgba(0, 0, 0, .7);
+}
+.adm-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+
+.adm-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.adm-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+
+/* -------------------------------------------------------------- buttons -- */
+.adm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 20px; border: 1px solid var(--a-line); border-radius: var(--a-r-sm);
+  font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--a-paper); background: var(--a-raised); cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, opacity .2s, transform .15s;
+  white-space: nowrap;
+}
+.adm-btn:hover:not(:disabled) { background: var(--a-paper); color: var(--a-ink); border-color: var(--a-paper); }
+.adm-btn:active:not(:disabled) { transform: scale(.97); }
+.adm-btn:disabled { opacity: .42; cursor: not-allowed; }
+.adm-btn--primary { background: var(--a-cobalt); border-color: var(--a-cobalt); color: var(--a-cobalt-ink); font-weight: 600; }
+.adm-btn--primary:hover:not(:disabled) { background: #dab876; border-color: #dab876; color: var(--a-cobalt-ink); }
+.adm-btn--danger { border-color: rgba(255, 59, 48, .5); color: #FF7A72; background: transparent; }
+.adm-btn--danger:hover:not(:disabled) { background: var(--a-danger); border-color: var(--a-danger); color: #fff; }
+.adm-btn--sm { padding: 7px 12px; font-size: 10px; letter-spacing: .12em; }
+.adm-btn--ghost { border-color: transparent; color: var(--a-dim); background: transparent; }
+.adm-btn--ghost:hover:not(:disabled) { background: rgba(241, 240, 236, .08); color: var(--a-paper); border-color: transparent; }
+.adm-btn--ghost.on { background: rgba(200, 164, 92, .16); color: var(--a-cobalt); }
+
+.adm-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* --------------------------------------------------------------- fields -- */
+.adm-field { display: block; margin-bottom: 16px; }
+.adm-field:last-child { margin-bottom: 0; }
+.adm-label {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--a-faint); margin-bottom: 7px;
+}
+.adm-input, .adm-textarea, .adm-select {
+  width: 100%; padding: 11px 13px; border-radius: var(--a-r-sm);
+  background: var(--a-raised); border: 1px solid var(--a-line);
+  color: var(--a-paper); font-family: var(--body); font-size: 14.5px; line-height: 1.5;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.adm-input::placeholder, .adm-textarea::placeholder { color: rgba(241, 240, 236, .26); }
+.adm-input:focus, .adm-textarea:focus, .adm-select:focus { border-color: var(--a-cobalt); outline: none; background: #242430; box-shadow: 0 0 0 3px rgba(200,164,92,.14); }
+.adm-textarea { resize: vertical; min-height: 96px; }
+.adm-select { appearance: none; cursor: pointer; padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--a-dim) 50%), linear-gradient(135deg, var(--a-dim) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 20px, calc(100% - 12px) 20px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+.adm-select option { background: var(--a-raised); color: var(--a-paper); }
+.adm-input--mono { font-family: var(--mono); font-size: 13px; letter-spacing: .02em; }
+.adm-field-error { color: #FF7A72; font-size: 12.5px; margin-top: 6px; font-family: var(--mono); }
+
+.adm-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+
+.adm-check { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; margin-bottom: 12px; }
+.adm-check:last-child { margin-bottom: 0; }
+.adm-check input { width: 17px; height: 17px; accent-color: var(--a-cobalt); cursor: pointer; flex-shrink: 0; }
+
+/* ----------------------------------------------------------- lang tabs --- */
+.adm-tabs { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--a-line); border-radius: var(--a-r-sm); margin-bottom: 16px; background: var(--a-raised); }
+.adm-tab {
+  padding: 7px 16px; border-radius: 6px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--a-faint); background: none; border: 0; cursor: pointer; transition: background .2s, color .2s;
+}
+.adm-tab:hover { color: var(--a-paper); }
+.adm-tab.active { background: var(--a-cobalt); color: var(--a-cobalt-ink); }
+
+/* ------------------------------------------------------- badge & expiry -- */
+/* Each chip carries its real on-menu color even before it's picked (a soft
+   tint + colored icon), so choosing one is a preview of the actual badge
+   the guest will see — not a guess from a plain gray label. Picking it
+   swaps the tint for the same solid gradient the site badge itself uses. */
+.adm-badge-picker { display: flex; flex-wrap: wrap; gap: 9px; }
+.adm-badge-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--body); font-size: 12.5px; letter-spacing: .01em; font-weight: 700;
+  padding: 9px 16px 9px 13px; border-radius: 999px; border: 1px solid var(--a-line); background: var(--a-raised);
+  color: var(--a-dim); cursor: pointer; transition: all .2s;
+}
+.adm-badge-chip:hover { filter: brightness(1.15); }
+.adm-badge-chip.active { border-color: transparent; font-weight: 800; box-shadow: 0 6px 16px -8px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2); }
+
+.adm-badge-chip--none { color: var(--a-dim); }
+.adm-badge-chip--none.active { background: var(--a-dim); color: var(--a-ink); }
+
+.adm-badge-chip--recommended { color: var(--a-cobalt); border-color: rgba(200,164,92,.3); background: rgba(200,164,92,.08); }
+.adm-badge-chip--recommended.active { background: linear-gradient(155deg, #e8c67e, var(--a-cobalt) 65%, #a97f3f); color: var(--a-cobalt-ink); }
+
+.adm-badge-chip--new { color: #7fc4ea; border-color: rgba(111,181,224,.3); background: rgba(111,181,224,.08); }
+.adm-badge-chip--new.active { background: linear-gradient(155deg, #8fd0f2, #4f9dcb 65%, #2c6f96); color: #06202f; }
+
+.adm-badge-chip--discount { color: #e88f85; border-color: rgba(224,104,95,.3); background: rgba(224,104,95,.08); }
+.adm-badge-chip--discount.active { background: linear-gradient(155deg, #f0897e, #d8564a 65%, #a63a30); color: #2c0705; }
+
+.adm-badge-chip--out_of_stock { color: var(--a-faint); border-color: var(--a-line); background: rgba(241,240,236,.03); }
+.adm-badge-chip--out_of_stock.active { background: linear-gradient(155deg, #4a4436, #2a261c 70%); color: var(--a-dim); }
+
+.adm-duration-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-duration-chip {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--a-line); background: transparent;
+  color: var(--a-dim); cursor: pointer; transition: all .2s;
+}
+.adm-duration-chip:hover { color: var(--a-paper); border-color: var(--a-faint); }
+.adm-duration-chip.active { background: var(--a-cobalt); border-color: transparent; color: var(--a-cobalt-ink); font-weight: 700; }
+
+/* ---------------------------------------------------------- dish/cat list */
+.adm-list { border: 1px solid var(--a-line); background: var(--a-surface); border-radius: var(--a-r-lg); overflow: hidden; }
+.adm-item {
+  display: grid; grid-template-columns: 34px 62px minmax(0, 1fr) auto auto;
+  align-items: center; gap: 16px; padding: 13px 18px;
+  border-bottom: 1px solid var(--a-line-soft);
+  transition: background .2s;
+}
+.adm-list > .adm-item:last-child { border-bottom: 0; }
+.adm-item:hover { background: rgba(241, 240, 236, .035); }
+.adm-item.dragging { opacity: .35; }
+.adm-item.drop-target { box-shadow: inset 0 2px 0 var(--a-cobalt); }
+
+/* Dish rows (Preparate list) have no drag handle — their own grid, sized so
+   a long dish name gets real room instead of being cut mid-word. */
+.adm-cat-row { border-bottom: 1px solid var(--a-line-soft); transition: background-color .5s; }
+.adm-list > .adm-cat-row:last-child { border-bottom: 0; }
+.adm-cat-row .adm-item { border-bottom: 0; padding: 13px 18px; grid-template-columns: 34px 62px 52px minmax(0, 1fr) auto; }
+.adm-thumb--emoji { font-size: 26px; line-height: 1; }
+/* No emoji saved yet — this is the site's fallback glyph, not a real choice,
+   so it's shown faded rather than looking identical to a deliberately-set
+   one (that confusion is exactly what made every un-filled category look
+   like it had "the same emoji"). */
+.adm-thumb--emoji.is-placeholder { opacity: .32; }
+.adm-cat-translations {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+  padding: 4px 18px 16px 112px; background: rgba(241, 240, 236, .02);
+}
+@media (max-width: 720px) { .adm-cat-translations { padding-left: 18px; } }
+
+.adm-input--emoji { width: 52px; padding: 11px 4px; text-align: center; font-size: 18px; }
+
+/* Newly-created category: a brief gold wash + settle, so it's obvious which
+   row just appeared after the list auto-scrolls to it. */
+.adm-cat-row.just-added { animation: admJustAdded 1.8s ease-out; }
+@keyframes admJustAdded {
+  0% { background-color: rgba(200, 164, 92, .28); }
+  100% { background-color: transparent; }
+}
+
+/* ------------------------------------------------------- dish card grid --
+   The Preparate list used to be a flat data-table row. Real dish photos
+   (from the venue's own menu) deserve a photo-forward card instead — same
+   language as the public menu's own cards (weight tag on the photo,
+   gold accents), so the two surfaces read as one product. */
+.adm-dish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 16px; }
+
+.adm-dish-card {
+  position: relative;
+  background: var(--a-raised); border: 1px solid var(--a-line-soft); border-radius: var(--a-r-md);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: border-color .2s, transform .15s, box-shadow .2s, opacity .15s;
+}
+.adm-dish-card:hover { border-color: var(--a-line); transform: translateY(-2px); box-shadow: 0 14px 28px -18px rgba(0,0,0,.6); }
+.adm-dish-card.is-hidden { opacity: .6; }
+.adm-dish-card.dragging { opacity: .35; }
+.adm-dish-drag {
+  position: absolute; top: 8px; left: 8px; z-index: 2;
+  width: 23px; height: 23px; border-radius: 999px; background: rgba(15,15,19,.65); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; color: var(--a-dim);
+  cursor: grab; transition: color .15s, background .15s;
+}
+.adm-dish-drag:hover { color: var(--a-paper); background: rgba(15,15,19,.85); }
+.adm-dish-drag:active { cursor: grabbing; }
+
+.adm-dish-photo {
+  position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden;
+  background: radial-gradient(circle at 30% 20%, rgba(200,164,92,.14), transparent 70%), var(--a-surface);
+}
+.adm-dish-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
+.adm-dish-card:hover .adm-dish-photo img { transform: scale(1.04); }
+.adm-dish-photo-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; opacity: .5; }
+.adm-dish-weight {
+  position: absolute; left: 8px; bottom: 8px; z-index: 1;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em; color: #fff;
+  background: rgba(10,8,4,.6); backdrop-filter: blur(3px); padding: 3px 9px; border-radius: 999px;
+}
+.adm-dish-star {
+  position: absolute; top: 8px; right: 8px; z-index: 1;
+  width: 23px; height: 23px; border-radius: 999px; background: rgba(15,15,19,.65); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; color: var(--a-cobalt);
+}
+.adm-dish-hidden-veil {
+  position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
+  background: rgba(15,15,19,.72);
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--a-warn);
+}
+
+.adm-dish-body { padding: 12px 13px 2px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.adm-dish-name {
+  font-family: var(--display); font-weight: 800; font-size: 13.5px; text-transform: uppercase;
+  letter-spacing: -.005em; line-height: 1.3; color: var(--a-paper);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  transition: color .15s;
+}
+.adm-dish-card:hover .adm-dish-name { color: var(--a-cobalt); }
+.adm-dish-price { font-family: var(--display); font-weight: 700; font-size: 13.5px; color: var(--a-cobalt); white-space: nowrap; flex-shrink: 0; }
+.adm-dish-price i { font-style: normal; font-size: 9.5px; letter-spacing: .04em; text-transform: lowercase; color: var(--a-faint); margin-left: 2px; }
+
+.adm-dish-actions { display: flex; align-items: center; gap: 2px; padding: 8px 8px 10px; margin-top: auto; }
+.adm-dish-actions > :nth-child(4) { margin-left: auto; }
+
+.adm-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: 8px; color: var(--a-dim);
+  transition: background .18s, color .18s;
+}
+.adm-icon-btn:hover { background: rgba(241, 240, 236, .07); color: var(--a-paper); }
+.adm-icon-btn:disabled { opacity: .3; pointer-events: none; }
+.adm-icon-btn--danger:hover { background: rgba(255, 59, 48, .12); color: var(--a-danger); }
+
+.adm-drag {
+  cursor: grab; color: var(--a-faint); display: flex; align-items: center; justify-content: center;
+  height: 34px; touch-action: none;
+}
+.adm-drag:active { cursor: grabbing; }
+.adm-drag:hover { color: var(--a-paper); }
+
+.adm-thumb {
+  width: 62px; aspect-ratio: 1; overflow: hidden; background: var(--a-raised); border-radius: var(--a-r-sm);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-family: var(--display); font-weight: 800; font-size: 12px; color: var(--a-paper);
+}
+.adm-thumb img, .adm-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.adm-item-name { min-width: 0; }
+.adm-item-name b {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  font-family: var(--display); font-weight: 800; font-size: 15.5px; text-transform: uppercase;
+  letter-spacing: -.005em; line-height: 1.28; white-space: normal; word-break: break-word;
+}
+.adm-item-name span { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; color: var(--a-faint); display: block; margin-top: 3px; }
+
+.adm-badge {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid currentColor; border-radius: 999px; white-space: nowrap;
+}
+.adm-badge--live { color: var(--a-live); }
+.adm-badge--dev { color: var(--a-danger); }
+.adm-badge--case { color: var(--a-dim); }
+.adm-badge--hidden { color: var(--a-warn); }
+
+/* ------------------------------------------------------------ media/photo */
+.adm-photo-grid { display: grid; grid-template-columns: minmax(0,220px) 1fr; gap: 20px; align-items: start; }
+@media (max-width: 640px) { .adm-photo-grid { grid-template-columns: 1fr; } }
+.adm-thumb--photo {
+  width: 100%; aspect-ratio: 4/3; height: auto; border-radius: var(--a-r-md);
+  background: radial-gradient(circle at 30% 20%, rgba(200,164,92,.14), transparent 70%), var(--a-raised);
+  border: 1px solid var(--a-line);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--a-faint);
+}
+.adm-thumb--photo img { width: 100%; height: 100%; object-fit: cover; border-radius: calc(var(--a-r-md) - 1px); }
+
+/* ------------------------------------------------------------- dropzone -- */
+.adm-drop {
+  border: 1.5px dashed var(--a-line); background: var(--a-raised); border-radius: var(--a-r-md);
+  padding: 38px 22px; text-align: center; cursor: pointer;
+  transition: border-color .22s, background .22s, transform .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.adm-drop:hover { border-color: var(--a-cobalt); background: rgba(200, 164, 92, .07); }
+.adm-drop.over { border-style: solid; border-color: var(--a-cobalt); background: rgba(200, 164, 92, .12); transform: scale(1.01); }
+.adm-drop-icon {
+  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(200, 164, 92, .14); color: var(--a-cobalt);
+}
+.adm-drop-title { font-family: var(--display); font-weight: 800; font-size: 15.5px; text-transform: uppercase; letter-spacing: .01em; }
+.adm-drop-sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; color: var(--a-faint); text-transform: uppercase; }
+
+.adm-upload { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--a-line-soft); font-size: 13px; }
+.adm-upload:last-child { border-bottom: 0; }
+.adm-upload-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 12px; }
+.adm-upload-bar { width: 110px; height: 4px; border-radius: 999px; background: rgba(241, 240, 236, .14); flex-shrink: 0; overflow: hidden; }
+.adm-upload-bar i { display: block; height: 100%; background: var(--a-cobalt); transition: width .18s linear; }
+.adm-upload-pct { font-family: var(--mono); font-size: 11px; color: var(--a-faint); min-width: 38px; text-align: right; }
+
+/* ---------------------------------------------------------------- chips -- */
+.adm-chipset { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-chip {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  padding: 9px 16px; border: 1px solid var(--a-line); border-radius: 999px; color: var(--a-dim);
+  cursor: pointer; background: var(--a-raised); transition: all .18s;
+}
+.adm-chip:hover { color: var(--a-paper); border-color: var(--a-dim); }
+.adm-chip.on { background: var(--a-cobalt); border-color: var(--a-cobalt); color: var(--a-cobalt-ink); font-weight: 600; }
+.adm-chip-group { margin-bottom: 14px; }
+.adm-chip-group:last-child { margin-bottom: 0; }
+.adm-chip-group > span {
+  display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--a-faint); margin-bottom: 8px;
+}
+
+.adm-panel.dragging { opacity: .4; }
+
+/* ------------------------------------------------------------- messages -- */
+.adm-note { border-left: 3px solid var(--a-cobalt); background: rgba(200, 164, 92, .09); border-radius: 0 var(--a-r-md) var(--a-r-md) 0; padding: 14px 18px; font-size: 13.5px; line-height: 1.55; margin-bottom: 18px; }
+.adm-note--warn { border-left-color: var(--a-warn); background: rgba(255, 176, 32, .1); }
+.adm-note--danger { border-left-color: var(--a-danger); background: rgba(255, 59, 48, .1); }
+.adm-note > b:first-child { display: block; margin-bottom: 4px; font-family: var(--display); font-weight: 800; }
+
+.adm-empty { padding: 46px 20px; text-align: center; color: var(--a-faint); border: 1.5px dashed var(--a-line); border-radius: var(--a-r-lg); }
+.adm-empty b { display: block; font-family: var(--display); font-weight: 800; font-size: 17px; text-transform: uppercase; color: var(--a-paper); margin-bottom: 6px; }
+
+/* ---------------------------------------------------------------- toast -- */
+.adm-toasts { position: fixed; right: 18px; bottom: 18px; z-index: 10050; display: flex; flex-direction: column; gap: 9px; max-width: min(400px, calc(100vw - 36px)); }
+.adm-toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--a-paper); color: var(--a-ink); border-radius: var(--a-r-md);
+  padding: 13px 15px; font-size: 13.5px; line-height: 1.45;
+  border-left: 3px solid var(--a-cobalt);
+  animation: admToastIn .32s cubic-bezier(.19, 1, .22, 1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+}
+.adm-toast--error { border-left-color: var(--a-danger); }
+.adm-toast--success { border-left-color: var(--a-live); }
+.adm-toast button { flex-shrink: 0; color: rgba(15, 15, 19, .45); background: none; border: 0; cursor: pointer; padding: 0; line-height: 1; }
+.adm-toast button:hover { color: var(--a-ink); }
+@keyframes admToastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .adm-toast { animation: none; } }
+
+/* --------------------------------------------------------------- dialog -- */
+.adm-dialog-backdrop { position: fixed; inset: 0; z-index: 10040; background: rgba(9, 9, 12, .74); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.adm-dialog { background: var(--a-surface); border: 1px solid var(--a-line); border-radius: var(--a-r-lg); padding: 26px; max-width: 430px; width: 100%; box-shadow: 0 30px 70px -20px rgba(0,0,0,.6); }
+.adm-dialog h3 { font-size: 19px; text-transform: uppercase; margin-bottom: 10px; }
+.adm-dialog p { color: var(--a-dim); font-size: 14px; margin-bottom: 22px; }
+.adm-dialog .adm-actions { justify-content: flex-end; }
+
+/* ---------------------------------------------------------------- login -- */
+.adm-login { min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+.adm-login-card { width: 100%; max-width: 400px; }
+.adm-login-mark { display: flex; align-items: center; gap: 11px; margin-bottom: 26px; font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--a-faint); }
+.adm-login form { display: flex; flex-direction: column; gap: 14px; }
+.adm-login .adm-btn { width: 100%; padding: 14px; }
+
+/* --------------------------------------------------------------- status -- */
+.adm-status { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--a-dim); }
+.adm-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--a-live); flex-shrink: 0; }
+.adm-status--off::before { background: var(--a-warn); }
+.adm-status--bad::before { background: var(--a-danger); }
+
+.adm-stat { border: 1px solid var(--a-line); background: var(--a-surface); border-radius: var(--a-r-md); padding: 18px; }
+.adm-stat b { display: block; font-family: var(--display); font-weight: 900; font-size: 38px; line-height: 1; margin-bottom: 6px; color: var(--a-cobalt); }
+.adm-stat span { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--a-faint); }
+
+.adm-spinner {
+  width: 15px; height: 15px; border: 2px solid rgba(241, 240, 236, .22);
+  border-top-color: var(--a-paper); border-radius: 50%;
+  animation: admSpin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes admSpin { to { transform: rotate(360deg); } }
+
+.adm-loading { display: flex; align-items: center; gap: 11px; padding: 46px 0; color: var(--a-faint); font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+
+/* ------------------------------------------------------------ responsive - */
+@media (max-width: 900px) {
+  .adm-shell { grid-template-columns: 1fr; background: none; }
+  .adm-side {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    overflow-x: auto; padding: 12px; gap: 6px; border-right: 0; border-bottom: 1px solid var(--a-line);
+  }
+  .adm-brand { display: none; }
+  .adm-nav { flex-direction: row; padding: 0; gap: 2px; }
+  .adm-navlink { margin: 0; border-left: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 9px 12px; white-space: nowrap; }
+  .adm-navlink-ic { width: 20px; height: 20px; background: none !important; }
+  .adm-navlink.active { background: transparent; color: var(--a-cobalt); border-bottom-color: var(--a-cobalt); box-shadow: none; }
+  .adm-navlink.active .adm-navlink-ic { color: var(--a-cobalt); }
+  .adm-side-foot { margin: 0 0 0 auto; padding: 0 0 0 12px; border-top: 0; border-left: 1px solid var(--a-line-soft); }
+  .adm-side-user { display: none; }
+  .adm-main { padding: 24px 18px 70px; }
+
+  .adm-item { grid-template-columns: 30px 48px minmax(0, 1fr); row-gap: 10px; }
+  .adm-item > :nth-child(4), .adm-item > :nth-child(5) { grid-column: 2 / -1; }
+
+  /* Category row grew an emoji cell for desktop; on narrow screens that
+     stops being one line no matter how it's sliced, so give it its own
+     explicit mobile layout instead of inheriting the plain .adm-item rule
+     above (which only accounts for the plain-list column count). */
+  .adm-cat-row .adm-item { grid-template-columns: 30px 48px 42px minmax(0, 1fr); row-gap: 10px; }
+  .adm-cat-row .adm-item > .adm-actions { grid-column: 1 / -1; }
+
+  .adm-dish-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+}
+
+/* ---- privacy policy editor (kept for future long-form pages) ---- */
+.adm-head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.adm-privacy-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1100px) { .adm-privacy-grid { grid-template-columns: 1fr; } }
+.adm-textarea--tall { min-height: 620px; font-size: 13px; line-height: 1.55; tab-size: 2; }
+
+/* ---- storage usage ---- */
+.adm-tier-badge {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .14em;
+  color: var(--a-cobalt); border: 1px solid rgba(200,164,92,.4); background: rgba(200,164,92,.08);
+  padding: 5px 11px; border-radius: 999px; white-space: nowrap;
+}
+.adm-usage + .adm-usage { margin-top: 16px; }
+.adm-usage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; font-size: 13.5px; }
+.adm-usage-head b { font-family: var(--mono); font-weight: 500; font-size: 12.5px; color: var(--a-paper); }
+.adm-usage-head i { font-style: normal; color: var(--a-faint); }
+.adm-usage-bar { height: 8px; background: var(--a-raised); border: 1px solid var(--a-line); border-radius: 999px; overflow: hidden; }
+.adm-usage-bar span { display: block; height: 100%; background: var(--a-cobalt); min-width: 2px; transition: width .6s cubic-bezier(.19,1,.22,1); }
+.adm-usage-bar.warn span { background: #FFB020; }
+.adm-usage-bar.danger span { background: var(--a-danger); }
+
+/* Look Restobar admin additions */
+.adm-mark-icon { width: 20px; height: auto; flex: none; }

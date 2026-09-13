@@ -131,6 +131,13 @@ export default function ItemEditor() {
         <label className="adm-field">
           <span className="adm-label">{t.editor.category}</span>
           <select className="adm-select" value={item.category_id || ''} onChange={e => save({ category_id: e.target.value })}>
+            {/* A dish whose category was deleted has category_id null, which
+                matches no real <option> below — without this placeholder the
+                select would silently default to showing the first category
+                while the dish stayed uncategorized underneath. */}
+            {!categories.some(c => c.id === item.category_id) && (
+              <option value="" disabled>{t.items.noCategoryOption}</option>
+            )}
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
@@ -229,7 +236,16 @@ export default function ItemEditor() {
               placeholder={t.editor.discountPercentPh}
               value={item.discount_percent ?? ''}
               onChange={e => setItem(cur => ({ ...cur, discount_percent: e.target.value === '' ? null : Number(e.target.value) }))}
-              onBlur={e => save({ discount_percent: e.target.value === '' ? null : Number(e.target.value) })}
+              onBlur={e => {
+                // The min/max attributes above only affect the spinner arrows —
+                // a typed 500 or -10 sails right through onChange, and without
+                // clamping here it would get saved as-is: a >100% "discount"
+                // makes effectivePrice() go negative on the public menu, and a
+                // negative one silently shows full price. Clamp on the way out.
+                const n = e.target.value === '' ? null : Math.max(0, Math.min(100, Number(e.target.value)))
+                setItem(cur => ({ ...cur, discount_percent: n }))
+                save({ discount_percent: n })
+              }}
             />
           </label>
         )}

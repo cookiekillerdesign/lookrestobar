@@ -109,7 +109,13 @@ export default function CategoriesPage() {
                   <input
                     className="adm-input adm-input--sm adm-input--emoji"
                     value={c.emoji || ''}
-                    maxLength={4}
+                    // Generous on purpose: maxLength counts UTF-16 code units,
+                    // not visible characters, and a compound emoji like the
+                    // very on-brand 🧑‍🍳 (cook) is already 5 units — a limit
+                    // of 4 silently chopped it mid-sequence into something
+                    // broken. 16 comfortably covers any realistic ZWJ emoji
+                    // while still stopping someone from pasting a paragraph.
+                    maxLength={16}
                     placeholder={DEFAULT_EMOJI}
                     title={t.categories.emojiHint}
                     onChange={e => setItems(list => list.map(x => x.id === c.id ? { ...x, emoji: e.target.value } : x))}

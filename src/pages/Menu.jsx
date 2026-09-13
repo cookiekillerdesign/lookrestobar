@@ -100,6 +100,61 @@ export default function Menu() {
     return () => document.removeEventListener('keydown', onKey)
   }, [navDrawerOpen])
 
+  // Dish cards fade + rise into place the first time they scroll into view —
+  // purely a `lm-reveal--in` class toggle, no React state, so it can't cause
+  // a re-render loop. Each card is unobserved right after it reveals (a
+  // guest scrolling back up shouldn't watch the same card fade in twice —
+  // that reads as gimmicky, not "premium"). Re-runs when the menu/category
+  // data changes or the active menu switches, since switching away from and
+  // back to Sala unmounts and remounts every card.
+  useEffect(() => {
+    if (!activeMenu.live) return
+    const pending = () => document.querySelectorAll('.lm-reveal:not(.lm-reveal--in)')
+    if (!pending().length) return
+    if (!('IntersectionObserver' in window)) {
+      pending().forEach(el => el.classList.add('lm-reveal--in'))
+      return
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('lm-reveal--in')
+          io.unobserve(entry.target)
+        }
+      })
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+    pending().forEach(el => io.observe(el))
+
+    // Safety net: a big instantaneous jump (scrollbar drag, End/Page-Down,
+    // a hard fling) can carry a card across the entire viewport between two
+    // IntersectionObserver checks, so it never registers as "intersecting"
+    // and would otherwise sit at opacity:0 forever — even if the guest later
+    // scrolls back over it, since it's already been `unobserve`d... actually
+    // it never gets unobserved in that case, but relying on catching it on a
+    // later pass isn't guaranteed either, so sweep directly on scroll too:
+    // reveal anything already on screen, or anything that got scrolled clean
+    // past without ever intersecting.
+    let ticking = false
+    function sweep() {
+      ticking = false
+      const vh = window.innerHeight
+      pending().forEach(el => {
+        const r = el.getBoundingClientRect()
+        if (r.top < vh * 0.92 || r.bottom < 0) {
+          el.classList.add('lm-reveal--in')
+          io.unobserve(el)
+        }
+      })
+    }
+    function onScroll() {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(sweep)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
+  }, [activeMenuId, items, categories])
+
   const byId = useMemo(() => {
     const m = {}
     items.forEach(it => { m[it.id] = it })
@@ -300,7 +355,7 @@ export default function Menu() {
                     key={it.id}
                     id={`item-${it.id}`}
                     it={it} cat={c} lang={lang} t={t}
-                    qty={qty} pulse={pulse} flashed={flashId === it.id}
+                    qty={qty} pulse={pulse} flashed={flashId === it.id} reveal
                     onToggleFav={() => toggleFav(it)}
                     onQty={(q) => setQty(it.id, q)}
                   />
@@ -340,7 +395,16 @@ export default function Menu() {
             const q = selection[id]
             return (
               <div className="lm-sel-row" key={id}>
-                <div className="lm-info"><b>{loc(it, lang, 'name')}</b><span>{effectivePrice(it)} lei{it.weight ? ' · ' + it.weight : ''}</span></div>
+                <div className="lm-sel-thumb">
+                  {it.photo_url
+                    ? <img src={it.photo_url} alt="" loading="lazy" />
+                    : <span className="lm-sel-thumb-fallback">{catById[it.category_id]?.emoji || DEFAULT_CAT_EMOJI}</span>}
+                </div>
+                <div className="lm-info">
+                  <b>{loc(it, lang, 'name')}</b>
+                  {loc(it, lang, 'description') && <p className="lm-sel-desc">{loc(it, lang, 'description')}</p>}
+                  <span>{effectivePrice(it)} lei{it.weight ? ' · ' + it.weight : ''}</span>
+                </div>
                 <div className="lm-qty">
                   <button onClick={() => setQty(id, q - 1)} aria-label={t.less}><Minus size={12} weight="bold" /></button>
                   <span>{q}</span>

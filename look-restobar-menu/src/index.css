@@ -1,0 +1,17 @@
+* { margin: 0; padding: 0; }
+/* No height:100% on body/#root on purpose: combined with the overflow-x:hidden
+   rules below (Menu.css / admin.css), a height-constrained body stops
+   propagating its overflow to the viewport (per the CSS spec, that
+   propagation only happens when body's overflow is the default 'visible'),
+   which turns body into its own independent scroll box instead of the page
+   scrolling normally — breaking window.scrollY, position:sticky against the
+   viewport, and anchor scrolling. Letting body/#root size to their content
+   keeps the viewport (html) as the one and only scrolling element. */
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark light;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: none; }

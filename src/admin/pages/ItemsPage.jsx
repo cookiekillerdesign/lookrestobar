@@ -30,6 +30,15 @@ export default function ItemsPage() {
     return (items || []).filter(i => i.category_id === categoryId)
   }
 
+  // Deleting a category doesn't delete its dishes (schema: category_id sets
+  // to null, and the delete-confirm dialog promises exactly that) — but
+  // without this, those dishes would vanish from view entirely: this page
+  // only ever renders items grouped under a real, existing category, so an
+  // item with a null/dangling category_id had no panel to appear in and no
+  // way back into the admin short of editing the database directly.
+  const categoryIds = new Set((categories || []).map(c => c.id))
+  const orphaned = (items || []).filter(i => !categoryIds.has(i.category_id))
+
   async function reorderWithin(categoryId, from, to) {
     const group = itemsFor(categoryId)
     const nextGroup = move(group, from, to)
@@ -164,6 +173,39 @@ export default function ItemsPage() {
           </div>
         )
       })}
+
+      {orphaned.length > 0 && (
+        <div className="adm-panel adm-panel--warning" style={{ marginBottom: 18 }}>
+          <div className="adm-panel-head">
+            <h2><span style={{ marginRight: 8 }}>⚠️</span>{t.items.uncategorized}</h2>
+          </div>
+          <p className="adm-hint">{t.items.uncategorizedHint}</p>
+          <div className="adm-dish-grid">
+            {orphaned.map(it => (
+              <div className={`adm-dish-card${!it.published ? ' is-hidden' : ''}`} key={it.id}>
+                <Link to={`/admin/items/${it.id}`} className="adm-dish-photo">
+                  {it.photo_url
+                    ? <img src={it.photo_url} alt="" loading="lazy" />
+                    : <span className="adm-dish-photo-fallback">🍽️</span>}
+                  {it.weight && <span className="adm-dish-weight">{it.weight}</span>}
+                  {!it.published && <span className="adm-dish-hidden-veil">{t.common.hiddenBadge}</span>}
+                </Link>
+                <div className="adm-dish-body">
+                  <Link to={`/admin/items/${it.id}`} className="adm-dish-name">{it.name}</Link>
+                  <span className="adm-dish-price">{it.price}<i>lei</i></span>
+                </div>
+                <div className="adm-dish-actions">
+                  <button type="button" className="adm-icon-btn" onClick={() => togglePublished(it)} title={it.published ? t.common.hide : t.common.show}>
+                    {it.published ? <Eye size={13} weight="bold" /> : <EyeSlash size={13} weight="bold" />}
+                  </button>
+                  <Link className="adm-icon-btn" to={`/admin/items/${it.id}`} aria-label={t.common.open}><PencilSimple size={12} weight="bold" /></Link>
+                  <button type="button" className="adm-icon-btn adm-icon-btn--danger" onClick={() => setPendingDelete(it)} aria-label={t.common.delete}><Trash size={12} weight="bold" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Confirm
         open={Boolean(pendingDelete)}

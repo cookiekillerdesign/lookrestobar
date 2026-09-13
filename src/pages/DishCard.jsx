@@ -6,13 +6,13 @@ import { activeBadge, BadgeIcon, DEFAULT_CAT_EMOJI, effectivePrice } from './men
  *  results, so a guest searching for a dish sees exactly the same card
  *  (photo, badge, weight, heart) they'd find scrolling the menu, instead of
  *  a stripped-down list row. */
-export default function DishCard({ it, cat, lang, t, qty, pulse, flashed, onToggleFav, onQty, id }) {
+export default function DishCard({ it, cat, lang, t, qty, pulse, flashed, onToggleFav, onQty, id, reveal }) {
   const badge = activeBadge(it)
   const oos = badge === 'out_of_stock'
   const hasDiscount = badge === 'discount' && it.discount_percent > 0
   const discountedPrice = hasDiscount ? effectivePrice(it) : null
   return (
-    <article className={`lm-card${oos ? ' oos' : ''}${flashed ? ' flash' : ''}`} id={id}>
+    <article className={`lm-card${oos ? ' oos' : ''}${flashed ? ' flash' : ''}${reveal ? ' lm-reveal' : ''}`} id={id}>
       {badge && (
         <span className={`lm-badge lm-badge--${badge}`}>
           <i className="lm-badge-ic"><BadgeIcon type={badge} /></i>

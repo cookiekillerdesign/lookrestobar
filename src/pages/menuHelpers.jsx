@@ -42,7 +42,12 @@ export const DEFAULT_CAT_EMOJI = '🍽️'
 export function effectivePrice(it) {
   const badge = activeBadge(it)
   if (badge === 'discount' && it.discount_percent > 0) {
-    return Math.round(it.price * (1 - it.discount_percent / 100))
+    // Clamped defensively even though the admin input clamps too — a row
+    // edited directly in Supabase, or saved before that clamp existed,
+    // could carry an out-of-range percent, and this is the one place every
+    // price on the site (card, search, waiter list, copied text) reads.
+    const pct = Math.min(100, it.discount_percent)
+    return Math.max(0, Math.round(it.price * (1 - pct / 100)))
   }
   return it.price
 }

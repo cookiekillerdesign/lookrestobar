@@ -81,7 +81,10 @@ const DICT = {
       shownToast: (name) => `„${name}” e din nou vizibil.`, hiddenToast: (name) => `„${name}” a fost ascuns.`,
       deletedToast: (name) => `„${name}” a fost șters.`,
       deleteTitle: (name) => `Ștergeți „${name}”?`,
-      deleteBody: 'Preparatul și poza lui vor fi șterse definitiv. Dacă vreți doar să-l ascundeți temporar, închideți și folosiți iconița cu ochiul.'
+      deleteBody: 'Preparatul și poza lui vor fi șterse definitiv. Dacă vreți doar să-l ascundeți temporar, închideți și folosiți iconița cu ochiul.',
+      uncategorized: 'Fără categorie',
+      uncategorizedHint: 'Au rămas fără categorie pentru că a fost ștearsă. Alegeți o categorie nouă în pagina preparatului, sau ștergeți-le.',
+      noCategoryOption: '— Fără categorie —'
     },
     editor: {
       backToItems: 'Toate preparatele', newTitle: 'Preparat nou',
@@ -181,7 +184,10 @@ const DICT = {
       shownToast: (name) => `«${name}» снова видно.`, hiddenToast: (name) => `«${name}» скрыто.`,
       deletedToast: (name) => `«${name}» удалено.`,
       deleteTitle: (name) => `Удалить «${name}»?`,
-      deleteBody: 'Блюдо и его фото будут удалены безвозвратно. Если нужно только временно скрыть — закройте окно и используйте иконку глаза.'
+      deleteBody: 'Блюдо и его фото будут удалены безвозвратно. Если нужно только временно скрыть — закройте окно и используйте иконку глаза.',
+      uncategorized: 'Без категории',
+      uncategorizedHint: 'Остались без категории, потому что она была удалена. Выберите новую категорию на странице блюда, либо удалите их.',
+      noCategoryOption: '— Без категории —'
     },
     editor: {
       backToItems: 'Все блюда', newTitle: 'Новое блюдо',
@@ -281,7 +287,10 @@ const DICT = {
       shownToast: (name) => `"${name}" is visible again.`, hiddenToast: (name) => `"${name}" was hidden.`,
       deletedToast: (name) => `"${name}" was deleted.`,
       deleteTitle: (name) => `Delete "${name}"?`,
-      deleteBody: 'The dish and its photo will be permanently deleted. To hide it only temporarily, close this and use the eye icon instead.'
+      deleteBody: 'The dish and its photo will be permanently deleted. To hide it only temporarily, close this and use the eye icon instead.',
+      uncategorized: 'No category',
+      uncategorizedHint: 'Left without a category because it was deleted. Pick a new category on the dish’s page, or delete these.',
+      noCategoryOption: '— No category —'
     },
     editor: {
       backToItems: 'All dishes', newTitle: 'New dish',
