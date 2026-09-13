@@ -34,9 +34,25 @@ export default function Menu() {
   const [flashId, setFlashId] = useState(null)
   const [activeMenuId, setActiveMenuId] = useState('sala')
   const [navDrawerOpen, setNavDrawerOpen] = useState(false)
+  const [activeCategoryId, setActiveCategoryId] = useState(null)
+  const [lightboxItem, setLightboxItem] = useState(null)
   const toastTimer = useRef(null)
   const pulseRef = useRef({})
   const searchInputRef = useRef(null)
+  // While a tab-click-triggered smooth scroll is in flight, the scrollspy
+  // below would otherwise "fight" it — recomputing from the page's current
+  // (still mid-animation) position and flashing the old tab back on for a
+  // few hundred ms before the real target section arrives. suppressSpyRef
+  // mutes scrollspy updates for as long as scroll events keep coming in,
+  // and clears itself 150ms after they stop — i.e. once the animation has
+  // actually settled — rather than guessing a fixed animation duration.
+  const suppressSpyRef = useRef(false)
+  const suppressSpyTimerRef = useRef(null)
+  function armSpySuppression() {
+    suppressSpyRef.current = true
+    clearTimeout(suppressSpyTimerRef.current)
+    suppressSpyTimerRef.current = setTimeout(() => { suppressSpyRef.current = false }, 150)
+  }
   const t = getDict(lang)
   const activeMenu = MENUS.find(m => m.id === activeMenuId) || MENUS[0]
 
@@ -100,6 +116,14 @@ export default function Menu() {
     return () => document.removeEventListener('keydown', onKey)
   }, [navDrawerOpen])
 
+  // Close the photo lightbox on Escape.
+  useEffect(() => {
+    if (!lightboxItem) return
+    function onKey(e) { if (e.key === 'Escape') setLightboxItem(null) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [lightboxItem])
+
   // Dish cards fade + rise into place the first time they scroll into view —
   // purely a `lm-reveal--in` class toggle, no React state, so it can't cause
   // a re-render loop. Each card is unobserved right after it reveals (a
@@ -154,6 +178,50 @@ export default function Menu() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => { io.disconnect(); window.removeEventListener('scroll', onScroll) }
   }, [activeMenuId, items, categories])
+
+  // Scrollspy: the category tab bar highlights whichever section the guest
+  // is actually scrolled past, not just the last one they tapped — so
+  // scrolling the page by hand keeps the tab strip honest too. "Current
+  // section" is whichever one's top has crossed just below the sticky
+  // header + tab bar; walking the list in document order and keeping the
+  // last one that qualifies is simpler and cheaper than juggling multiple
+  // IntersectionObserver entries against each other.
+  useEffect(() => {
+    if (!activeMenu.live || !categories.length) return
+    let ticking = false
+    function computeActive() {
+      ticking = false
+      const catnav = document.querySelector('.lm-catnav-wrap')
+      const refY = (catnav ? catnav.getBoundingClientRect().bottom : 0) + 4
+      let current = categories[0].id
+      for (const c of categories) {
+        const el = document.getElementById('sec-' + c.id)
+        if (!el) continue
+        if (el.getBoundingClientRect().top <= refY) current = c.id
+        else break
+      }
+      setActiveCategoryId(prev => prev === current ? prev : current)
+    }
+    computeActive()
+    function onScroll() {
+      if (suppressSpyRef.current) { armSpySuppression(); return }
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(computeActive)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll) }
+  }, [activeMenu.live, categories])
+
+  // Keeps the currently-active tab scrolled into view within the
+  // horizontally-scrolling strip — otherwise scrolling past category 8 of
+  // 10 would highlight a tab sitting off-screen to the right, invisible.
+  useEffect(() => {
+    if (!activeCategoryId) return
+    const btn = document.querySelector(`.lm-cat-btn[data-cat-id="${activeCategoryId}"]`)
+    btn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  }, [activeCategoryId])
 
   const byId = useMemo(() => {
     const m = {}
@@ -262,6 +330,8 @@ export default function Menu() {
   const totalSum = Object.entries(selection).reduce((a, [id, q]) => a + (byId[id] ? effectivePrice(byId[id]) * q : 0), 0)
 
   function scrollToCategory(id) {
+    setActiveCategoryId(id)
+    armSpySuppression()
     const el = document.getElementById('sec-' + id)
     if (!el) return
     const header = document.querySelector('.lm-topbar')
@@ -312,7 +382,13 @@ export default function Menu() {
         <div className={`lm-catnav-wrap${navHidden ? ' lm-nav-hidden' : ''}`}>
           <nav className="lm-catnav">
             {categories.map((c, ci) => (
-              <button key={c.id} className="lm-cat-btn" data-hue={ci % 6} onClick={() => scrollToCategory(c.id)}>
+              <button
+                key={c.id}
+                className={`lm-cat-btn${activeCategoryId === c.id ? ' active' : ''}`}
+                data-hue={ci % 6}
+                data-cat-id={c.id}
+                onClick={() => scrollToCategory(c.id)}
+              >
                 <span className="lm-cat-btn-ic">{c.emoji || DEFAULT_CAT_EMOJI}</span>
                 <span>{loc(c, lang, 'name')}</span>
               </button>
@@ -358,6 +434,7 @@ export default function Menu() {
                     qty={qty} pulse={pulse} flashed={flashId === it.id} reveal
                     onToggleFav={() => toggleFav(it)}
                     onQty={(q) => setQty(it.id, q)}
+                    onOpenPhoto={setLightboxItem}
                   />
                 )
               })}
@@ -461,6 +538,7 @@ export default function Menu() {
                       qty={qty} pulse={pulse} flashed={false}
                       onToggleFav={() => toggleFav(it)}
                       onQty={(q) => setQty(it.id, q)}
+                      onOpenPhoto={setLightboxItem}
                     />
                   </div>
                 )
@@ -530,6 +608,19 @@ export default function Menu() {
       </div>
 
       <div className={`lm-toast${toast ? ' show' : ''}`}>{toast}</div>
+
+      <div className={`lm-overlay${lightboxItem ? ' show' : ''}`} onClick={() => setLightboxItem(null)} />
+      <div className={`lm-lightbox${lightboxItem ? ' show' : ''}`} onClick={() => setLightboxItem(null)}>
+        {lightboxItem && (
+          <>
+            <button className="lm-icon-btn lm-lightbox-close" onClick={() => setLightboxItem(null)} aria-label={t.close}>
+              <X size={18} weight="bold" />
+            </button>
+            <img className="lm-lightbox-img" src={lightboxItem.photo_url} alt={loc(lightboxItem, lang, 'name')} />
+            <div className="lm-lightbox-cap">{loc(lightboxItem, lang, 'name')}</div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

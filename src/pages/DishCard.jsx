@@ -6,11 +6,17 @@ import { activeBadge, BadgeIcon, DEFAULT_CAT_EMOJI, effectivePrice } from './men
  *  results, so a guest searching for a dish sees exactly the same card
  *  (photo, badge, weight, heart) they'd find scrolling the menu, instead of
  *  a stripped-down list row. */
-export default function DishCard({ it, cat, lang, t, qty, pulse, flashed, onToggleFav, onQty, id, reveal }) {
+export default function DishCard({ it, cat, lang, t, qty, pulse, flashed, onToggleFav, onQty, id, reveal, onOpenPhoto }) {
   const badge = activeBadge(it)
   const oos = badge === 'out_of_stock'
   const hasDiscount = badge === 'discount' && it.discount_percent > 0
   const discountedPrice = hasDiscount ? effectivePrice(it) : null
+  const hasPhoto = Boolean(it.photo_url)
+  function openPhoto(e) {
+    if (!hasPhoto) return
+    e.stopPropagation()
+    onOpenPhoto?.(it)
+  }
   return (
     <article className={`lm-card${oos ? ' oos' : ''}${flashed ? ' flash' : ''}${reveal ? ' lm-reveal' : ''}`} id={id}>
       {badge && (
@@ -22,7 +28,14 @@ export default function DishCard({ it, cat, lang, t, qty, pulse, flashed, onTogg
           {badge === 'discount' && t.badgeDiscount(it.discount_percent)}
         </span>
       )}
-      <div className="lm-thumb">
+      <div
+        className={`lm-thumb${hasPhoto ? ' lm-thumb--zoomable' : ''}`}
+        onClick={openPhoto}
+        role={hasPhoto ? 'button' : undefined}
+        tabIndex={hasPhoto ? 0 : undefined}
+        aria-label={hasPhoto ? t.viewPhoto : undefined}
+        onKeyDown={hasPhoto ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPhoto(e) } } : undefined}
+      >
         {it.photo_url
           ? <img src={it.photo_url} alt={loc(it, lang, 'name')} loading="lazy" decoding="async" />
           : <div className="lm-thumb-fallback">{cat?.emoji || DEFAULT_CAT_EMOJI}</div>}

@@ -185,6 +185,10 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
 .lm-cat-btn[data-hue="4"] .lm-cat-btn-ic { background: var(--hue-4-soft); color: var(--hue-4); }
 .lm-cat-btn[data-hue="5"] .lm-cat-btn-ic { background: var(--hue-5-soft); color: var(--hue-5); }
 .lm-cat-btn:hover, .lm-cat-btn:active { color: var(--ink); border-color: var(--line); background: var(--card-hover); transform: translateY(-1px); }
+/* The section a guest is currently scrolled past — kept in sync with scroll
+   position (see the scrollspy effect in Menu.jsx), not just a click state,
+   so the strip always shows where you actually are on the page. */
+.lm-cat-btn.active { color: var(--ink); border-color: var(--gold); background: var(--card-hover); }
 
 /* ---- sections & grid ---- */
 main.lm-wrap { display: block; padding-bottom: 130px; }
@@ -231,7 +235,14 @@ main.lm-wrap { display: block; padding-bottom: 130px; }
 }
 .lm-reveal--in { opacity: 1; transform: translateY(0); }
 .lm-thumb { width: 100%; aspect-ratio: 4 / 3; background: var(--bg-2); overflow: hidden; position: relative; }
-.lm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s var(--ease); }
+/* Tap-to-enlarge affordance — a subtle zoom-in cursor on desktop and a very
+   light darken + scale on press, so the photo itself reads as interactive
+   without needing an icon badge cluttering every card. */
+.lm-thumb--zoomable { cursor: zoom-in; }
+.lm-thumb--zoomable:hover img { transform: scale(1.04); }
+.lm-thumb--zoomable:active img { transform: scale(1.01); }
+.lm-thumb--zoomable:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 .lm-thumb-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--gold); opacity: .6; font-size: 40px; background: radial-gradient(circle at 30% 20%, var(--line-soft), transparent 70%); }
 .lm-thumb-fallback svg { width: 34%; height: 34%; }
 .lm-card-body { padding: 16px 16px 14px; flex: 1; display: flex; flex-direction: column; }
@@ -457,3 +468,27 @@ html[data-theme="light"] .lm-price-discounted { color: #b8402f; }
   z-index: 90; opacity: 0; transition: all .35s var(--ease); pointer-events: none; max-width: calc(100vw - 32px); text-align: center;
 }
 .lm-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---- photo lightbox — tap a dish photo to see it full-size ---- */
+.lm-lightbox {
+  position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center;
+  padding: max(16px, var(--safe-t)) 16px max(16px, var(--safe-b));
+  opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); cursor: zoom-out;
+}
+.lm-lightbox.show { opacity: 1; pointer-events: auto; }
+.lm-lightbox-img {
+  max-width: 100%; max-height: 100%; display: block; border-radius: 16px; object-fit: contain;
+  box-shadow: 0 30px 70px -20px rgba(0,0,0,.6); transform: scale(.92); transition: transform .35s var(--ease);
+  background: var(--bg-2);
+}
+.lm-lightbox.show .lm-lightbox-img { transform: scale(1); }
+.lm-lightbox-close {
+  position: absolute; top: max(14px, var(--safe-t)); right: 14px; z-index: 1;
+  background: rgba(12, 10, 8, .55); border-color: rgba(255,255,255,.2); color: #fff; backdrop-filter: blur(6px);
+}
+.lm-lightbox-close:hover { background: rgba(12, 10, 8, .75); border-color: var(--gold); }
+.lm-lightbox-cap {
+  position: absolute; left: 16px; right: 16px; bottom: max(16px, var(--safe-b));
+  text-align: center; color: #fff; font-size: 13.5px; font-weight: 600;
+  text-shadow: 0 2px 10px rgba(0,0,0,.7); pointer-events: none;
+}
