@@ -1,0 +1,406 @@
+.lm-root {
+  --bg: #0c0a08;
+  --bg-2: #131009;
+  --card: #18140f;
+  --card-hover: #1f1a13;
+  --line: rgba(200, 164, 92, 0.16);
+  --line-soft: rgba(200, 164, 92, 0.08);
+  --gold: #cfa869;           /* flat brand accent — used everywhere except the hero headline */
+  --gold-ink: #1a1508;       /* text color sitting on top of --gold fills */
+  --gold-1: #9c6a39; --gold-2: #f4e779; --gold-3: #c09744; /* logo gradient — hero headline only */
+  --ink: #f4efe4;
+  --ink-dim: #cfc6b5;
+  --muted: #a89c86;
+  --muted-2: #79705f;
+  --radius: 18px;
+  --header-h: 76px;
+  --shadow-1: 0 10px 30px -12px rgba(0, 0, 0, .55);
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100svh;
+  width: 100%;
+  /* No overflow-x here on purpose: setting overflow-x:hidden without an
+     explicit overflow-y forces the UA to compute overflow-y as 'auto' (and
+     setting overflow-y:visible alongside it doesn't help — the spec makes
+     the browser promote 'visible' to 'auto' the moment the other axis isn't
+     'visible' too). That silently turns .lm-root into its own scroll
+     container; since it has no fixed height it never actually scrolls, but
+     it DOES become the nearest "scrolling ancestor" for every
+     position:sticky element inside it, which breaks their stickiness
+     against the real scrolling element (body). html/body already carry
+     overflow-x:hidden below, which is enough to stop horizontal scrollbars
+     without this trap. */
+  position: relative;
+}
+html[data-theme="light"] .lm-root {
+  --bg: #faf6ee; --bg-2: #f2ecdd; --card: #ffffff; --card-hover: #fbf7ec;
+  --line: rgba(156,106,57,.22); --line-soft: rgba(156,106,57,.12);
+  --ink: #241d14; --ink-dim: #4a4030; --muted: #7a6f5b; --muted-2: #9a8f79;
+  --shadow-1: 0 10px 30px -14px rgba(80,60,20,.25);
+}
+/* No overflow-x:hidden on html/body here on purpose (see the .lm-root
+   comment above): it forces their overflow-y to compute as 'auto', which
+   turns them into their own scroll containers and breaks position:sticky
+   against the real viewport scroll. Nothing in this layout actually
+   overflows horizontally, so there is nothing for it to guard against. */
+.lm-root, .lm-root *, .lm-root *::before, .lm-root *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+.lm-root ::selection { background: var(--gold); color: var(--gold-ink); }
+.lm-root button { font-family: inherit; }
+@media (prefers-reduced-motion: reduce) {
+  .lm-root *, .lm-root *::before, .lm-root *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+.lm-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.lm-ambient span { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .12; }
+.lm-ambient span:nth-child(1) { width: 460px; height: 460px; background: var(--gold-2); top: -160px; left: -120px; animation: lmDrift1 26s ease-in-out infinite; }
+.lm-ambient span:nth-child(2) { width: 380px; height: 380px; background: var(--gold-1); bottom: -140px; right: -110px; animation: lmDrift2 32s ease-in-out infinite; }
+html[data-theme="light"] .lm-ambient span { opacity: .08; }
+@keyframes lmDrift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(50px,30px); } }
+@keyframes lmDrift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,-25px); } }
+
+.lm-wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 640px) { .lm-wrap { padding: 0 28px; } }
+
+/* ---- topbar ---- */
+.lm-topbar {
+  position: sticky; top: 0; z-index: 50;
+  padding-top: var(--safe-t);
+  backdrop-filter: blur(16px) saturate(140%);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border-bottom: 1px solid var(--line-soft);
+  transition: transform .4s var(--ease);
+}
+/* Slides up and out of view on scroll-down (cookiekiller-style); the
+   category tab bar below it (position: sticky, top: 0) simply carries on
+   being sticky and ends up hugging the very top the instant this vacates
+   it — no layout jump, since a sticky element's transform never changes
+   the space it reserves in the document flow. */
+.lm-topbar-hidden { transform: translateY(-100%); }
+.lm-topbar-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); gap: 12px; }
+.lm-topbar-actions { position: relative; display: flex; align-items: center; gap: 10px; }
+.lm-langswitch { display: flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.lm-lang-btn { border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 6px 10px; border-radius: 999px; cursor: pointer; transition: background .2s var(--ease), color .2s; }
+.lm-lang-btn:hover { color: var(--ink); }
+.lm-lang-btn.active { background: var(--gold); color: var(--gold-ink); }
+
+/* ---- settings rows (now live inside the nav/settings drawer) ---- */
+.lm-settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lm-settings-row + .lm-settings-row { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.lm-settings-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.lm-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lm-brand-mark { height: 58px; width: 58px; flex: none; }
+.lm-brand-txt { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+.lm-brand-txt b { font-family: 'Playfair Display', serif; font-size: 16px; letter-spacing: .04em; white-space: nowrap; }
+.lm-brand-txt span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.lm-brand-logo { height: 34px; width: auto; display: block; flex: none; }
+@media (min-width: 480px) { .lm-brand-logo { height: 38px; } }
+.lm-icon-btn {
+  width: 44px; height: 44px; min-width: 44px; border-radius: 50%; border: 1px solid var(--line);
+  background: transparent; color: var(--ink); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .25s var(--ease), border-color .25s; flex: none;
+}
+.lm-icon-btn:hover { background: var(--line-soft); border-color: var(--gold); }
+.lm-icon-btn:active { transform: scale(.92); }
+.lm-icon-btn svg { width: 18px; height: 18px; }
+
+/* ---- hero ---- */
+.lm-hero { padding: 40px 0 22px; text-align: center; }
+.lm-hero-mark { width: 100px; height: auto; margin: 0 auto 16px; opacity: .95; }
+.lm-hero h1 { font-family: 'Great Vibes', cursive; font-weight: 400; font-size: clamp(36px, 9vw, 66px); letter-spacing: .01em; margin: 0 0 14px; line-height: 1.3; }
+.lm-hero h1 em { font-style: normal; background: linear-gradient(120deg, var(--gold-1), var(--gold-2) 50%, var(--gold-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lm-hero p { max-width: 480px; margin: 0 auto; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+.lm-divider { width: 100px; height: 1px; margin: 22px auto 0; position: relative; overflow: hidden; background: var(--line); }
+.lm-divider i { position: absolute; inset: 0; width: 40%; background: linear-gradient(90deg, transparent, var(--gold), transparent); animation: lmSweep 3.4s ease-in-out infinite; }
+@keyframes lmSweep { 0% { transform: translateX(-120%); } 60%,100% { transform: translateX(320%); } }
+
+/* ---- category hue accents — 6-color rotation so each category reads
+   distinctly at a glance, instead of every chip/icon sharing one gold tone ---- */
+.lm-root {
+  --hue-0: #cfa869; --hue-0-soft: rgba(207,168,105,.15);
+  --hue-1: #7fb8a3; --hue-1-soft: rgba(127,184,163,.15);
+  --hue-2: #c98a6b; --hue-2-soft: rgba(201,138,107,.15);
+  --hue-3: #8fa6c9; --hue-3-soft: rgba(143,166,201,.15);
+  --hue-4: #c98fb0; --hue-4-soft: rgba(201,143,176,.15);
+  --hue-5: #b5b16a; --hue-5-soft: rgba(181,177,106,.15);
+}
+
+/* ---- category nav ---- */
+.lm-catnav-wrap {
+  position: sticky; top: var(--header-h); z-index: 45; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft);
+  transition: top .4s var(--ease), box-shadow .3s;
+  box-shadow: 0 10px 24px -16px rgba(0,0,0,.5);
+}
+/* Never hides — only hugs the top the instant the header above it tucks
+   away, so a guest can always reach the categories no matter the scroll
+   position (the header, not this bar, is what disappears). */
+.lm-catnav-wrap.lm-nav-hidden { top: 0; }
+.lm-catnav { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding: 10px 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.lm-catnav::-webkit-scrollbar { display: none; }
+/* Always a single horizontally-scrolling strip — on wide screens too, so a
+   growing category list never wraps into a messy multi-row block. */
+@media (min-width: 860px) { .lm-catnav { padding: 14px 28px; justify-content: flex-start; } }
+.lm-cat-btn {
+  flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px 8px 8px; border-radius: 999px;
+  border: 1px solid var(--line-soft); background: var(--card); color: var(--ink-dim); font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: all .25s var(--ease); min-height: 40px;
+}
+.lm-cat-btn-ic { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; flex: none; font-size: 15px; line-height: 1; transition: all .25s var(--ease); }
+.lm-cat-btn-ic svg { width: 14px; height: 14px; stroke: currentColor; }
+.lm-cat-btn[data-hue="0"] .lm-cat-btn-ic { background: var(--hue-0-soft); color: var(--hue-0); }
+.lm-cat-btn[data-hue="1"] .lm-cat-btn-ic { background: var(--hue-1-soft); color: var(--hue-1); }
+.lm-cat-btn[data-hue="2"] .lm-cat-btn-ic { background: var(--hue-2-soft); color: var(--hue-2); }
+.lm-cat-btn[data-hue="3"] .lm-cat-btn-ic { background: var(--hue-3-soft); color: var(--hue-3); }
+.lm-cat-btn[data-hue="4"] .lm-cat-btn-ic { background: var(--hue-4-soft); color: var(--hue-4); }
+.lm-cat-btn[data-hue="5"] .lm-cat-btn-ic { background: var(--hue-5-soft); color: var(--hue-5); }
+.lm-cat-btn:hover, .lm-cat-btn:active { color: var(--ink); border-color: var(--line); background: var(--card-hover); transform: translateY(-1px); }
+
+/* ---- sections & grid ---- */
+main.lm-wrap { display: block; padding-bottom: 130px; }
+.lm-section { padding: 44px 0 4px; scroll-margin-top: calc(var(--header-h) + 60px); }
+.lm-section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.lm-section-ic {
+  flex: none; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; line-height: 1;
+}
+.lm-section-ic svg { width: 22px; height: 22px; stroke: currentColor; }
+.lm-section-ic[data-hue="0"] { background: var(--hue-0-soft); color: var(--hue-0); }
+.lm-section-ic[data-hue="1"] { background: var(--hue-1-soft); color: var(--hue-1); }
+.lm-section-ic[data-hue="2"] { background: var(--hue-2-soft); color: var(--hue-2); }
+.lm-section-ic[data-hue="3"] { background: var(--hue-3-soft); color: var(--hue-3); }
+.lm-section-ic[data-hue="4"] { background: var(--hue-4-soft); color: var(--hue-4); }
+.lm-section-ic[data-hue="5"] { background: var(--hue-5-soft); color: var(--hue-5); }
+.lm-section-headtxt { display: flex; flex-direction: column; gap: 1px; }
+.lm-num { font-family: 'Playfair Display', serif; font-size: 11px; color: var(--gold-3); letter-spacing: .04em; }
+.lm-section-head h2 { font-family: 'Playfair Display', serif; font-weight: 600; font-size: clamp(19px, 4vw, 26px); margin: 0; line-height: 1.15; }
+.lm-rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+.lm-count-chip { flex: none; font-size: 11px; font-weight: 700; color: var(--muted-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.lm-loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px 0; color: var(--muted); }
+.lm-spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--gold); animation: lmSpin .8s linear infinite; }
+@keyframes lmSpin { to { transform: rotate(360deg); } }
+
+.lm-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 560px) { .lm-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+@media (min-width: 900px) { .lm-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+@media (min-width: 1300px) { .lm-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.lm-card {
+  position: relative; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius);
+  overflow: hidden; transition: border-color .3s, background .3s, box-shadow .3s, transform .3s var(--ease);
+  display: flex; flex-direction: column;
+}
+.lm-card:hover { border-color: var(--line); background: var(--card-hover); box-shadow: var(--shadow-1); }
+.lm-thumb { width: 100%; aspect-ratio: 4 / 3; background: var(--bg-2); overflow: hidden; position: relative; }
+.lm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lm-thumb-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--gold); opacity: .6; font-size: 40px; background: radial-gradient(circle at 30% 20%, var(--line-soft), transparent 70%); }
+.lm-thumb-fallback svg { width: 34%; height: 34%; }
+.lm-card-body { padding: 16px 16px 14px; flex: 1; display: flex; flex-direction: column; }
+.lm-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.lm-card h3 { font-family: 'TikTok Sans Variable', 'Inter', sans-serif; font-weight: 650; font-size: 16.5px; margin: 0 0 6px; line-height: 1.3; letter-spacing: -.005em; }
+.lm-desc { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; text-align: justify; text-justify: inter-word; }
+.lm-card-meta { display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 14px; flex-wrap: wrap; }
+/* Grammage chip, back in the meta row next to the price (not overlaid on
+   the photo) — matches how the venue's own printed menu presents it. */
+.lm-weight { font-size: 11px; font-weight: 700; color: var(--muted-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.lm-price { margin-left: auto; font-family: 'TikTok Sans Variable', 'Inter', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -.005em; }
+.lm-price i { font-style: normal; font-size: 12px; color: var(--muted-2); margin-left: 3px; font-family: 'Inter', sans-serif; }
+/* Discounted price pair: the struck-through original next to the new
+   price, in the same spot the plain price normally sits. */
+.lm-price-wrap { margin-left: auto; display: flex; align-items: baseline; gap: 8px; }
+.lm-price-old { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--muted-2); text-decoration: line-through; text-decoration-thickness: 1.5px; opacity: .8; }
+.lm-price-old i { font-style: normal; }
+.lm-price-discounted { margin-left: 0; color: #d8564a; }
+html[data-theme="light"] .lm-price-discounted { color: #b8402f; }
+.lm-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; font-weight: 800;
+  padding: 5px 11px 5px 8px; border-radius: 999px;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.lm-badge-ic { display: flex; flex-shrink: 0; width: 12px; height: 12px; }
+.lm-badge-ic svg { width: 100%; height: 100%; display: block; }
+.lm-badge--recommended { background: linear-gradient(155deg, #e8c67e, var(--gold) 65%, #a97f3f); color: var(--gold-ink); }
+.lm-badge--new { background: linear-gradient(155deg, #8fd0f2, #4f9dcb 65%, #2c6f96); color: #06202f; }
+.lm-badge--discount { background: linear-gradient(155deg, #f0897e, #d8564a 65%, #a63a30); color: #2c0705; }
+.lm-badge--out_of_stock {
+  background: linear-gradient(155deg, #3a352c, #211d16 70%); color: var(--muted);
+  border-color: rgba(200,164,92,.14); box-shadow: 0 6px 16px -6px rgba(0,0,0,.6);
+}
+.lm-card.oos { opacity: .6; }
+.lm-card.oos .lm-thumb img { filter: grayscale(.5); }
+.lm-fav-btn:disabled { opacity: .4; cursor: not-allowed; }
+.lm-fav-btn:disabled:hover { border-color: var(--line); color: var(--muted); }
+.lm-fav-btn {
+  flex: none; width: 40px; height: 40px; min-width: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted);
+  transition: border-color .25s, color .25s;
+}
+.lm-fav-btn svg { width: 18px; height: 18px; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+.lm-fav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.lm-fav-btn.on { color: #e2483a; border-color: #e2483a; }
+.lm-fav-btn.on svg { fill: #e2483a; transform: scale(1.1); }
+.lm-fav-btn.pulse svg { animation: lmPulse .5s var(--ease); }
+@keyframes lmPulse { 0% { transform: scale(1); } 35% { transform: scale(1.5); } 60% { transform: scale(.92); } 100% { transform: scale(1.1); } }
+.lm-qty-inline { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.lm-qty-inline button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-size: 15px; }
+.lm-qty-inline button:active { transform: scale(.9); }
+.lm-qty-inline span:not(.lm-in-list) { min-width: 20px; text-align: center; font-weight: 600; font-size: 14px; }
+.lm-in-list { font-size: 11px; color: var(--gold); margin-left: 2px; letter-spacing: .02em; }
+
+.lm-coming-soon { border: 1px dashed var(--line); background: transparent; border-radius: var(--radius); padding: 24px; text-align: center; color: var(--muted-2); font-size: 13px; }
+
+/* Brief gold outline pulse when a search result is scrolled into view, so
+   the guest's eye finds the right card immediately among dozens of others. */
+.lm-card.flash { animation: lmFlash 1.6s var(--ease); }
+@keyframes lmFlash {
+  0%, 100% { box-shadow: none; border-color: var(--line-soft); }
+  15%, 70% { box-shadow: 0 0 0 2px var(--gold), var(--shadow-1); border-color: var(--gold); }
+}
+
+/* ---- footer ---- */
+.lm-footer { border-top: 1px solid var(--line-soft); padding: 40px 0 max(40px, var(--safe-b)); text-align: center; color: var(--muted-2); font-size: 12.5px; position: relative; z-index: 1; }
+.lm-footer-mark { width: 54px; height: auto; margin: 0 auto 12px; opacity: .85; }
+.lm-footer b { color: var(--ink-dim); font-family: 'Playfair Display', serif; font-size: 15px; display: block; margin-bottom: 18px; }
+.lm-footer-contacts { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
+.lm-footer-follow { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.lm-footer-link, .lm-footer-phone {
+  color: var(--gold); font-weight: 700; text-decoration: none; letter-spacing: .01em;
+  transition: color .2s, border-color .2s;
+}
+.lm-footer-link { border-bottom: 1px dashed var(--gold-3); padding-bottom: 2px; }
+.lm-footer-link:hover, .lm-footer-phone:hover { color: var(--gold-2); border-color: var(--gold-2); }
+.lm-footer-legal { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 16px; margin: 4px 0 18px; }
+.lm-footer-legal-link { font-size: 11.5px; color: var(--muted-2); text-decoration: none; letter-spacing: .01em; transition: color .18s; }
+.lm-footer-legal-link:hover { color: var(--gold); }
+.lm-note { max-width: 420px; margin: 0 auto; }
+.lm-credit { margin: 14px 0 0; font-size: 11px; color: var(--muted-2); }
+.lm-credit a { color: var(--muted-2); text-decoration: none; border-bottom: 1px dashed var(--line); padding-bottom: 1px; transition: color .18s, border-color .18s; }
+.lm-credit a:hover { color: var(--gold); border-color: var(--gold); }
+.lm-note { max-width: 460px; margin: 14px auto 0; line-height: 1.6; opacity: .75; }
+
+/* ---- floating action button ---- */
+.lm-fab {
+  position: fixed; right: 16px; bottom: max(16px, var(--safe-b)); z-index: 60;
+  display: flex; align-items: center; gap: 9px; padding: 13px 18px 13px 15px; border-radius: 999px;
+  background: var(--gold); color: var(--gold-ink); border: none; cursor: pointer;
+  box-shadow: 0 14px 34px -10px rgba(0,0,0,.6); font-weight: 700; font-size: 13.5px;
+  transition: transform .3s var(--ease), opacity .3s;
+}
+.lm-fab svg { width: 18px; height: 18px; }
+.lm-fab .lm-count { background: var(--gold-ink); color: var(--gold); border-radius: 999px; min-width: 21px; height: 21px; padding: 0 6px; display: flex; align-items: center; justify-content: center; font-size: 11.5px; }
+.lm-fab.hide { transform: translateY(140%); opacity: 0; pointer-events: none; }
+@media (min-width: 1024px) { .lm-fab { right: 28px; bottom: 28px; } }
+
+/* ---- drawer ---- */
+.lm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); z-index: 70; opacity: 0; pointer-events: none; transition: opacity .35s var(--ease); }
+.lm-overlay.show { opacity: 1; pointer-events: auto; }
+.lm-drawer {
+  position: fixed; z-index: 80; background: var(--bg-2); border: 1px solid var(--line);
+  display: flex; flex-direction: column; transition: transform .45s var(--ease); box-shadow: -10px 0 40px rgba(0,0,0,.4);
+  left: 0; right: 0; bottom: 0; max-height: 82vh; border-radius: 20px 20px 0 0; transform: translateY(100%);
+  padding-bottom: var(--safe-b);
+}
+.lm-drawer.show { transform: translateY(0); }
+@media (min-width: 860px) {
+  .lm-drawer { left: auto; top: 0; right: 0; bottom: 0; max-height: none; width: 400px; border-radius: 0; transform: translateX(100%); }
+  .lm-drawer.show { transform: translateX(0); }
+}
+.lm-drawer-handle { width: 38px; height: 4px; background: var(--line); border-radius: 99px; margin: 12px auto 0; }
+@media (min-width: 860px) { .lm-drawer-handle { display: none; } }
+.lm-drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--line-soft); }
+.lm-drawer-head h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin: 0; }
+.lm-drawer-head p { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+.lm-drawer-body { flex: 1; overflow-y: auto; padding: 6px 18px 14px; -webkit-overflow-scrolling: touch; }
+.lm-sel-row { display: flex; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.lm-sel-row .lm-info { flex: 1; min-width: 0; }
+.lm-sel-row .lm-info b { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 14px; display: block; }
+.lm-sel-row .lm-info span { font-size: 11px; color: var(--muted); }
+.lm-sel-row .lm-qty { display: flex; align-items: center; gap: 8px; }
+.lm-sel-row .lm-qty button { width: 28px; height: 28px; min-width: 28px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.lm-sel-row .lm-qty span { min-width: 16px; text-align: center; font-weight: 600; font-size: 13px; }
+.lm-rm { width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent; color: var(--muted-2); cursor: pointer; flex: none; }
+.lm-rm:hover { color: #c0574a; }
+.lm-empty-state { text-align: center; padding: 48px 8px; color: var(--muted); }
+.lm-empty-state svg { width: 40px; height: 40px; margin: 0 auto 14px; opacity: .5; }
+.lm-drawer-foot { border-top: 1px solid var(--line-soft); padding: 14px 18px 18px; }
+.lm-drawer-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+.lm-drawer-total span { color: var(--muted); font-size: 12.5px; }
+.lm-drawer-total b { font-family: 'TikTok Sans Variable', 'Inter', sans-serif; font-weight: 700; font-size: 21px; }
+.lm-btn-row { display: flex; gap: 10px; }
+.lm-btn { flex: 1; padding: 13px; min-height: 46px; border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+.lm-btn.primary { background: var(--gold); color: var(--gold-ink); border: none; }
+.lm-btn:active { transform: scale(.97); }
+
+/* ---- search ---- */
+.lm-search-sheet {
+  position: fixed; z-index: 85; left: 0; right: 0; top: 0; bottom: 0; background: var(--bg-2);
+  display: flex; flex-direction: column; transition: transform .4s var(--ease), opacity .3s;
+  transform: translateY(-100%); opacity: 0; box-shadow: 0 20px 50px -20px rgba(0,0,0,.5);
+  padding-top: var(--safe-t); padding-bottom: var(--safe-b);
+}
+.lm-search-sheet.show { transform: translateY(0); opacity: 1; }
+.lm-search-bar { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--line-soft); color: var(--muted); }
+.lm-search-bar svg { width: 19px; height: 19px; flex: none; }
+.lm-search-bar input {
+  flex: 1; border: none; background: transparent; outline: none; color: var(--ink); font-size: 15.5px;
+  font-family: 'Inter', sans-serif; min-width: 0;
+}
+.lm-search-bar input::placeholder { color: var(--muted-2); }
+.lm-search-results { flex: 1; overflow-y: auto; padding: 14px 16px 24px; -webkit-overflow-scrolling: touch; }
+/* Search results reuse the exact same .lm-grid + DishCard as the category
+   sections — a guest searching sees the real card (photo, badge, weight,
+   heart), not a stripped-down row. The wrapper just adds the tap-to-jump
+   affordance around the card. */
+.lm-search-card { cursor: pointer; }
+@media (min-width: 640px) { .lm-search-results { padding: 18px 28px 28px; } }
+
+/* ---- nav / settings drawer (right side, always) ---- */
+.lm-navdrawer {
+  position: fixed; z-index: 80; top: 0; right: 0; bottom: 0; width: min(360px, 88vw);
+  background: var(--bg-2); border-left: 1px solid var(--line);
+  display: flex; flex-direction: column; transition: transform .4s var(--ease); box-shadow: -10px 0 40px rgba(0,0,0,.4);
+  transform: translateX(100%); padding-bottom: var(--safe-b); padding-top: var(--safe-t);
+}
+.lm-navdrawer.show { transform: translateX(0); }
+.lm-navdrawer-body { flex: 1; overflow-y: auto; padding: 8px 16px 20px; -webkit-overflow-scrolling: touch; }
+.lm-navdrawer-section { padding: 16px 0; border-bottom: 1px solid var(--line-soft); }
+.lm-navdrawer-section:last-child { border-bottom: 0; }
+.lm-navdrawer-section-title {
+  display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted-2); margin-bottom: 10px;
+}
+.lm-menu-row, .lm-navdrawer-cat {
+  width: 100%; display: flex; align-items: center; gap: 11px; padding: 10px 10px; border-radius: 12px; border: none;
+  background: transparent; cursor: pointer; text-align: left; color: var(--ink); font-size: 13.5px; font-weight: 600;
+  transition: background .18s;
+}
+.lm-menu-row:hover, .lm-navdrawer-cat:hover { background: var(--card-hover); }
+.lm-menu-row.active { background: var(--line-soft); color: var(--gold); }
+.lm-menu-row-ic { flex: none; font-size: 18px; width: 26px; text-align: center; }
+.lm-menu-row-name { flex: 1; min-width: 0; }
+.lm-menu-row-tag {
+  flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--muted-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px;
+}
+
+/* ---- "coming soon" panel for the not-yet-digitized menus ---- */
+.lm-comingsoon { text-align: center; padding: 70px 16px 40px; max-width: 420px; margin: 0 auto; }
+.lm-comingsoon-emoji { font-size: 46px; display: block; margin-bottom: 14px; }
+.lm-comingsoon h2 { font-family: 'Playfair Display', serif; font-size: 24px; margin: 0 0 10px; }
+.lm-comingsoon p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0 0 22px; }
+.lm-comingsoon .lm-btn { display: inline-flex; align-items: center; gap: 7px; flex: none; padding: 12px 22px; }
+
+/* ---- toast ---- */
+.lm-toast {
+  position: fixed; left: 50%; bottom: calc(90px + var(--safe-b)); transform: translate(-50%, 16px);
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  z-index: 90; opacity: 0; transition: all .35s var(--ease); pointer-events: none; max-width: calc(100vw - 32px); text-align: center;
+}
+.lm-toast.show { opacity: 1; transform: translate(-50%, 0); }
