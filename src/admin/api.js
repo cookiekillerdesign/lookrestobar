@@ -135,6 +135,22 @@ export async function reorderItems(orderedIds) {
   if (bad) fail(bad.error, 'Nu s-a putut salva ordinea preparatelor.')
 }
 
+/* ------------------------------------------------------- site content --- */
+
+/** One row of `site_content` (contact / footer / legal_*), or null if an admin hasn't saved that section yet. */
+export async function getSiteContent(id) {
+  const { data, error } = await db().from('site_content').select('*').eq('id', id).maybeSingle()
+  fail(error, 'Nu s-a putut încărca conținutul.')
+  return data
+}
+
+/** Creates or overwrites the row for `id` with the given `data` payload — used for contacts, the footer tagline, and each legal page. */
+export async function saveSiteContent(id, data) {
+  const { data: row, error } = await db().from('site_content').upsert({ id, data }).select().single()
+  fail(error, 'Nu s-a putut salva conținutul.')
+  return row
+}
+
 /* --------------------------------------------------------- usage/quota --- */
 
 /**

@@ -573,3 +573,10 @@ body:has(.adm) { background: #0F0F13; }
 
 /* Look Restobar admin additions */
 .adm-mark-icon { width: 20px; height: auto; flex: none; }
+
+/* ---- site content: legal-page section editor ---- */
+.adm-legal-section-row {
+  border: 1px solid var(--a-line); border-radius: var(--a-r-md); background: var(--a-raised);
+  padding: 14px 14px 4px; margin-bottom: 12px; position: relative;
+}
+.adm-legal-section-actions { display: flex; justify-content: flex-end; gap: 6px; margin-bottom: 8px; }

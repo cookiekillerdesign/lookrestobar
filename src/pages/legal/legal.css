@@ -1,6 +1,5 @@
 /* Legal pages (Terms / Privacy / GDPR / Cookies) reuse Menu.css's .lm-root
    tokens, fonts and footer — this file only adds the reading layout. */
-.lm-brand-link { text-decoration: none; color: inherit; }
 .lm-legal-main { padding: 36px 0 60px; max-width: 720px; }
 .lm-legal-back {
   display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700;

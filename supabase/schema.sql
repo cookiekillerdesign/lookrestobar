@@ -212,3 +212,31 @@ $$;
 
 revoke all on function public.admin_usage_stats() from public, anon;
 grant execute on function public.admin_usage_stats() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 9. Site content — contacts, footer note, legal pages
+--    One row per key ('contact', 'footer', 'legal_terms', 'legal_privacy',
+--    'legal_gdpr', 'legal_cookies'). Nothing personal lives here, so it's
+--    world-readable like the menu; only admins can write. The app ships with
+--    bundled defaults for every key, so a guest never sees blank content —
+--    a row only needs to exist once an admin actually edits that section.
+-- ----------------------------------------------------------------------------
+create table if not exists public.site_content (
+  id         text primary key,
+  data       jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists site_content_touch on public.site_content;
+create trigger site_content_touch before update on public.site_content
+  for each row execute function public.touch_updated_at();
+
+alter table public.site_content enable row level security;
+
+drop policy if exists "site content public read" on public.site_content;
+create policy "site content public read" on public.site_content
+  for select using (true);
+
+drop policy if exists "site content admin write" on public.site_content;
+create policy "site content admin write" on public.site_content
+  for all using (public.is_admin()) with check (public.is_admin());

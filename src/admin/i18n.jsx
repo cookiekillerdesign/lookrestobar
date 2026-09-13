@@ -13,7 +13,7 @@ const STORAGE_KEY = 'look_admin_lang'
 
 const DICT = {
   ro: {
-    nav: { overview: 'Prezentare', categories: 'Categorii', items: 'Preparate', settings: 'Setări', menu: 'Meniu', logout: 'Ieșire', panel: 'Panou admin' },
+    nav: { overview: 'Prezentare', categories: 'Categorii', items: 'Preparate', site: 'Conținut', settings: 'Setări', menu: 'Meniu', logout: 'Ieșire', panel: 'Panou admin' },
     common: {
       loading: 'Încarc…', error: 'Eroare', up: 'Sus', down: 'Jos', show: 'Arată pe meniu', hide: 'Ascunde de pe meniu',
       open: 'Deschide', delete: 'Șterge', add: 'Adaugă', save: 'Salvează', saved: 'salvat', cancel: 'Anulează', drag: 'Trageți pentru a reordona',
@@ -112,10 +112,34 @@ const DICT = {
       langNote: 'Preferința se ține minte doar în acest browser.',
       accountTitle: 'Cont', accountEmail: 'Autentificat ca'
     },
+    site: {
+      eyebrow: 'Conținut', title: 'Conținutul site-ului',
+      lede: 'Contactele, textul din subsol și cele patru pagini juridice — totul de aici, fără să mai fie nevoie de o modificare de cod.',
+      autosaveHint: 'Fiecare câmp se salvează singur când ieșiți din el.',
+      tabContact: 'Contacte', tabFooter: 'Subsol', tabTerms: 'Termeni', tabPrivacy: 'Confidențialitate', tabGdpr: 'GDPR', tabCookies: 'Cookie-uri',
+      contactTitle: 'Contacte și rețele sociale',
+      contactLede: 'Folosite în subsolul site-ului și pe pagina fiecărui meniu.',
+      address: 'Adresă (text afișat)', maps: 'Link Google Maps',
+      phoneDisplay: 'Telefon (text afișat)', phoneHref: 'Telefon (link tel:)', phoneHrefHint: 'Format: tel:+37379414040 — fără spații.',
+      instagram: 'Link Instagram', facebook: 'Link Facebook', tiktok: 'Link TikTok',
+      officialSite: 'Link site oficial', officialSiteHint: 'Folosit la butonul „Vezi pe site-ul oficial” pentru meniurile marcate „În curând”.',
+      footerTitle: 'Textul din subsolul site-ului',
+      footerLede: 'Propoziția scurtă de sub logo, în subsol — separat pe fiecare limbă.',
+      footerNoteRo: 'Text (RO)', footerNoteRu: 'Text (RU)', footerNoteEn: 'Text (EN)',
+      legalLede: 'Titlul și textul acestei pagini, pe fiecare limbă. Fiecare secțiune are un titlu și un paragraf — le puteți adăuga, elimina sau reordona.',
+      docTitle: 'Titlul paginii',
+      sectionsTitle: 'Secțiuni',
+      sectionHeading: 'Titlu secțiune', sectionBody: 'Text',
+      addSection: 'Adaugă secțiune', removeSection: 'Elimină secțiunea',
+      emptySections: 'Nicio secțiune încă — adăugați prima mai jos.',
+      updatedPreview: (date) => `Ultima actualizare afișată pe site: ${date}`,
+      updatedNever: 'Neactualizat încă din admin — pe site se vede data din textul implicit.',
+      savedToast: 'Salvat.'
+    },
     mediaDrop: { title: 'Trageți o poză aici', subtitle: 'JPG · PNG · WEBP — până la 20 MB', error: 'eroare' }
   },
   ru: {
-    nav: { overview: 'Обзор', categories: 'Категории', items: 'Блюда', settings: 'Настройки', menu: 'Меню', logout: 'Выход', panel: 'Админ-панель' },
+    nav: { overview: 'Обзор', categories: 'Категории', items: 'Блюда', site: 'Контент', settings: 'Настройки', menu: 'Меню', logout: 'Выход', panel: 'Админ-панель' },
     common: {
       loading: 'Загрузка…', error: 'Ошибка', up: 'Вверх', down: 'Вниз', show: 'Показать в меню', hide: 'Скрыть из меню',
       open: 'Открыть', delete: 'Удалить', add: 'Добавить', save: 'Сохранить', saved: 'сохранено', cancel: 'Отмена', drag: 'Перетащите, чтобы изменить порядок',
@@ -214,10 +238,34 @@ const DICT = {
       langNote: 'Выбор запоминается только в этом браузере.',
       accountTitle: 'Аккаунт', accountEmail: 'Вход выполнен как'
     },
+    site: {
+      eyebrow: 'Контент', title: 'Контент сайта',
+      lede: 'Контакты, текст в подвале сайта и четыре юридические страницы — всё отсюда, без правки кода.',
+      autosaveHint: 'Каждое поле сохраняется само, как только вы кликнете мимо него.',
+      tabContact: 'Контакты', tabFooter: 'Подвал', tabTerms: 'Условия', tabPrivacy: 'Конфиденциальность', tabGdpr: 'GDPR', tabCookies: 'Cookie-файлы',
+      contactTitle: 'Контакты и соцсети',
+      contactLede: 'Используются в подвале сайта и на странице каждого меню.',
+      address: 'Адрес (отображаемый текст)', maps: 'Ссылка на Google Maps',
+      phoneDisplay: 'Телефон (отображаемый текст)', phoneHref: 'Телефон (ссылка tel:)', phoneHrefHint: 'Формат: tel:+37379414040 — без пробелов.',
+      instagram: 'Ссылка на Instagram', facebook: 'Ссылка на Facebook', tiktok: 'Ссылка на TikTok',
+      officialSite: 'Ссылка на официальный сайт', officialSiteHint: 'Используется в кнопке «Смотреть на официальном сайте» для меню с пометкой «Скоро».',
+      footerTitle: 'Текст в подвале сайта',
+      footerLede: 'Короткая фраза под логотипом в подвале — отдельно для каждого языка.',
+      footerNoteRo: 'Текст (RO)', footerNoteRu: 'Текст (RU)', footerNoteEn: 'Текст (EN)',
+      legalLede: 'Заголовок и текст этой страницы на каждом языке. У каждого раздела — заголовок и абзац; их можно добавлять, удалять и менять местами.',
+      docTitle: 'Заголовок страницы',
+      sectionsTitle: 'Разделы',
+      sectionHeading: 'Заголовок раздела', sectionBody: 'Текст',
+      addSection: 'Добавить раздел', removeSection: 'Удалить раздел',
+      emptySections: 'Пока нет ни одного раздела — добавьте первый ниже.',
+      updatedPreview: (date) => `Дата обновления, которая видна на сайте: ${date}`,
+      updatedNever: 'Ещё не обновлялось из админки — на сайте видна дата из текста по умолчанию.',
+      savedToast: 'Сохранено.'
+    },
     mediaDrop: { title: 'Перетащите фото сюда', subtitle: 'JPG · PNG · WEBP — до 20 МБ', error: 'ошибка' }
   },
   en: {
-    nav: { overview: 'Overview', categories: 'Categories', items: 'Dishes', settings: 'Settings', menu: 'Menu', logout: 'Log out', panel: 'Admin panel' },
+    nav: { overview: 'Overview', categories: 'Categories', items: 'Dishes', site: 'Content', settings: 'Settings', menu: 'Menu', logout: 'Log out', panel: 'Admin panel' },
     common: {
       loading: 'Loading…', error: 'Error', up: 'Up', down: 'Down', show: 'Show on menu', hide: 'Hide from menu',
       open: 'Open', delete: 'Delete', add: 'Add', save: 'Save', saved: 'saved', cancel: 'Cancel', drag: 'Drag to reorder',
@@ -315,6 +363,30 @@ const DICT = {
       langTitle: 'Panel language', langBody: "Changes the language of the admin's own text (menus, buttons, labels). It does not affect the public menu's language — guests choose that on the site itself.",
       langNote: 'This choice is remembered only in this browser.',
       accountTitle: 'Account', accountEmail: 'Signed in as'
+    },
+    site: {
+      eyebrow: 'Content', title: 'Site content',
+      lede: 'Contacts, the footer text, and the four legal pages — all from here, with no code changes needed.',
+      autosaveHint: 'Every field saves itself as soon as you click away from it.',
+      tabContact: 'Contacts', tabFooter: 'Footer', tabTerms: 'Terms', tabPrivacy: 'Privacy', tabGdpr: 'GDPR', tabCookies: 'Cookies',
+      contactTitle: 'Contacts and social links',
+      contactLede: "Used in the site's footer and on every menu page.",
+      address: 'Address (displayed text)', maps: 'Google Maps link',
+      phoneDisplay: 'Phone (displayed text)', phoneHref: 'Phone (tel: link)', phoneHrefHint: 'Format: tel:+37379414040 — no spaces.',
+      instagram: 'Instagram link', facebook: 'Facebook link', tiktok: 'TikTok link',
+      officialSite: 'Official site link', officialSiteHint: 'Used by the "See on the official site" button for menus marked "Coming soon".',
+      footerTitle: "The site footer's text",
+      footerLede: 'The short line under the logo in the footer — set separately per language.',
+      footerNoteRo: 'Text (RO)', footerNoteRu: 'Text (RU)', footerNoteEn: 'Text (EN)',
+      legalLede: 'This page\'s title and text, per language. Each section has a heading and a paragraph — add, remove or reorder them.',
+      docTitle: 'Page title',
+      sectionsTitle: 'Sections',
+      sectionHeading: 'Section heading', sectionBody: 'Text',
+      addSection: 'Add a section', removeSection: 'Remove this section',
+      emptySections: 'No sections yet — add the first one below.',
+      updatedPreview: (date) => `Update date shown on the site: ${date}`,
+      updatedNever: "Not edited from the admin yet — the site shows the default text's date.",
+      savedToast: 'Saved.'
     },
     mediaDrop: { title: 'Drop a photo here', subtitle: 'JPG · PNG · WEBP — up to 20 MB', error: 'error' }
   }

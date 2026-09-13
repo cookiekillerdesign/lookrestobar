@@ -7,7 +7,7 @@ import LogoMark from './LogoMark.jsx'
 import DishCard from './DishCard.jsx'
 import SiteFooter from './SiteFooter.jsx'
 import { MENUS, menuName } from '../data/menus'
-import { CONTACT } from '../data/contact'
+import { useContact } from '../content/siteContent'
 import { fold, activeBadge, DEFAULT_CAT_EMOJI, effectivePrice } from './menuHelpers.jsx'
 import { SITE_LANGS, SITE_LANG_LABELS, getDict, loc } from '../i18n/site'
 import logoHorizontal from '../assets/logo-horizontal.svg'
@@ -36,6 +36,7 @@ export default function Menu() {
   const [navDrawerOpen, setNavDrawerOpen] = useState(false)
   const [activeCategoryId, setActiveCategoryId] = useState(null)
   const [lightboxItem, setLightboxItem] = useState(null)
+  const CONTACT = useContact()
   const toastTimer = useRef(null)
   const pulseRef = useRef({})
   const searchInputRef = useRef(null)

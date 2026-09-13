@@ -108,10 +108,6 @@ html[data-theme="light"] .lm-ambient span { opacity: .08; }
 .lm-settings-row + .lm-settings-row { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
 .lm-settings-label { font-size: 12px; color: var(--muted); font-weight: 600; }
 .lm-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.lm-brand-mark { height: 58px; width: 58px; flex: none; }
-.lm-brand-txt { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
-.lm-brand-txt b { font-family: 'Playfair Display', serif; font-size: 16px; letter-spacing: .04em; white-space: nowrap; }
-.lm-brand-txt span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .lm-brand-logo { height: 34px; width: auto; display: block; flex: none; }
 @media (min-width: 480px) { .lm-brand-logo { height: 38px; } }
 .lm-icon-btn {

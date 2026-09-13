@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom'
-import { SquaresFour, FolderOpen, ForkKnife, Gear, SignOut, ArrowUpRight } from '@phosphor-icons/react'
+import { SquaresFour, FolderOpen, ForkKnife, FileText, Gear, SignOut, ArrowUpRight } from '@phosphor-icons/react'
 import LogoMark from '../pages/LogoMark.jsx'
 import { supabase } from '../lib/supabase'
 import { isSupabaseConfigured } from '../lib/supabaseConfig'
@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import CategoriesPage from './pages/CategoriesPage'
 import ItemsPage from './pages/ItemsPage'
 import ItemEditor from './pages/ItemEditor'
+import SiteContentPage from './pages/SiteContentPage'
 import Settings from './pages/Settings'
 import './admin.css'
 
@@ -62,6 +63,7 @@ function AdminAppInner() {
     { to: '/admin', end: true, label: t.nav.overview, icon: SquaresFour },
     { to: '/admin/categories', end: false, label: t.nav.categories, icon: FolderOpen },
     { to: '/admin/items', end: false, label: t.nav.items, icon: ForkKnife },
+    { to: '/admin/site', end: false, label: t.nav.site, icon: FileText },
     { to: '/admin/settings', end: false, label: t.nav.settings, icon: Gear }
   ]
 
@@ -120,6 +122,7 @@ function AdminAppInner() {
               <Route path="categories" element={<CategoriesPage />} />
               <Route path="items" element={<ItemsPage />} />
               <Route path="items/:id" element={<ItemEditor />} />
+              <Route path="site" element={<SiteContentPage />} />
               <Route path="settings" element={<Settings email={session.user.email} />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Routes>

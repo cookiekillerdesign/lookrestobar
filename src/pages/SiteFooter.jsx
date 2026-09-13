@@ -2,17 +2,23 @@ import { Link } from 'react-router-dom'
 import { MapPin, Phone, InstagramLogo, FacebookLogo, TiktokLogo } from '@phosphor-icons/react'
 import logoHorizontal from '../assets/logo-horizontal.svg'
 import logoVertical from '../assets/logo-vertical.svg'
-import { CONTACT } from '../data/contact'
 import { getDict } from '../i18n/site'
+import { useContact, useFooterNote } from '../content/siteContent'
 
 /** Shared footer for the menu and every legal page — one place to keep the
  *  contacts, socials, legal links and credit line in sync. Laid out as three
  *  columns (brand, contacts, socials) over a bottom bar (legal links +
  *  credit) on wide screens, collapsing to one centered stack on phones —
  *  the same content as before, just given real structure instead of one
- *  long centered list. */
+ *  long centered list.
+ *
+ *  Contacts and the tagline come from the admin-editable `site_content`
+ *  table when a row exists there, falling back to the bundled defaults
+ *  otherwise — see src/content/siteContent.js. */
 export default function SiteFooter({ lang }) {
   const t = getDict(lang)
+  const CONTACT = useContact()
+  const footerNote = useFooterNote(lang, t.footerNote)
   return (
     <footer className="lm-footer">
       <div className="lm-wrap lm-footer-inner">
@@ -23,7 +29,7 @@ export default function SiteFooter({ lang }) {
                 layout flash and no duplicate markup to keep in sync. */}
             <img src={logoVertical} alt="LOOK Restobar & Terrace" className="lm-footer-logo lm-footer-logo-v" />
             <img src={logoHorizontal} alt="LOOK Restobar & Terrace" className="lm-footer-logo lm-footer-logo-h" />
-            <p className="lm-footer-note">{t.footerNote}</p>
+            <p className="lm-footer-note">{footerNote}</p>
           </div>
 
           <div className="lm-footer-col">
